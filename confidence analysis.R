@@ -1,6 +1,9 @@
 library(tidyverse)
 library(stringr)
 
+### sets working directory to file location in RStudio
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 data_path <- "confidence data"
 
 all_dat <- list.files(data_path, full.names = TRUE, pattern = "^data")
