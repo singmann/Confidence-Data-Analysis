@@ -1,7 +1,7 @@
 library(tidyverse)
 library(stringr)
 
-data_path <- "C:/Users/kiara/OneDrive/Desktop/Confidence Data Analysis/confidence data"
+data_path <- "confidence data"
 
 all_dat <- list.files(data_path, full.names = TRUE, pattern = "^data")
 all_names <- list.files(data_path, full.names = FALSE, pattern = "^data") |>
