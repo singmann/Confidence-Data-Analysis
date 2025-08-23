@@ -1,0 +1,2588 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-08-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+```
+
+
+```{r, include=FALSE}
+library(tidyverse)
+library(stringr)
+library(kableExtra)
+theme_set(theme_bw(base_size = 15) + 
+            theme(legend.position="bottom"))
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+data_path <- "confidence data"
+
+all_dat <- list.files(data_path, full.names = TRUE, pattern = "^data")
+all_names <- list.files(data_path, full.names = FALSE, pattern = "^data") |>
+  str_remove("^data_") |>
+  str_remove(".csv$")
+```
+
+```{r}
+adler_2018_ex3 <- read_csv(file.path(data_path, "data_Adler_2018_Expt3.csv")) |> mutate(dataset = "Adler_2018_Ex3")
+
+adler_2018_ex3 <- adler_2018_ex3 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+adler_2018_ex3_wide <- adler_2018_ex3 |> 
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>% 
+  count(dataset, Subj_idx, status, conf) |> 
+  pivot_wider(names_from = c(status, conf), values_from = n, values_fill = 0)
+
+adler_2018_ex3_plot <- adler_2018_ex3 |> 
+  count(dataset, status, conf) |> 
+  group_by(dataset, status) |> 
+  mutate(prob = n/sum(n)) |> 
+  ungroup() |> 
+  select(-n) |> 
+  pivot_wider(names_from = status, values_from = prob) |> 
+  arrange(dataset, desc(conf)) |> 
+  mutate(across(c(noise, signal), cumsum)) |>  
+  filter(conf != "1") |> mutate(category = "Cognitive")
+
+```
+
+```{r}
+chandravadia_2020 <- read_csv(file.path(data_path, "data_Chandravadia_2020.csv")) |> mutate(dataset = "Chandravadia_2020")
+
+chandravadia_2020<-chandravadia_2020 |>
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise"),
+         conf = case_when(
+           resp == "noise" ~ 4- Confidence,
+           resp == "signal" ~ 3 + Confidence
+         ))
+
+chandravadia_2020_wide <- chandravadia_2020 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(patientNumber, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+chandravadia_2020_plot<- chandravadia_2020 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+desender_2022_p2B <- read_csv(file.path(data_path, "data_Desender_2022_Exp2B.csv")) |> mutate(dataset = "Desender_2022_p2B")
+
+desender_2022_p2B<- desender_2022_p2B |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  ))
+
+desender_2022_p2B_wide <- desender_2022_p2B |>
+  mutate(conf = factor(conf, 1:12)) |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) |>
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2)))) 
+
+desender_2022_p2B_plot<- desender_2022_p2B |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+gajdos_2019 <- read_csv(file.path(data_path, "data_Gajdos_2019.csv")) |> mutate(dataset = "Gajdos_2019") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+gajdos_2019<- gajdos_2019 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+gajdos_2019_wide <- gajdos_2019 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+gajdos_2019_plot<- gajdos_2019 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+gherman_2018 <- read_csv(file.path(data_path, "data_Gherman_2018.csv")) |> mutate(dataset = "Gherman_2018")
+
+gherman_2018<- gherman_2018 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) %>% 
+  mutate(conf = case_when(
+    is.na(Confidence) | is.nan(Confidence) ~ NA,
+    resp ==  "noise" ~ 10 - Confidence,
+    resp ==  "signal" ~ 9 + Confidence
+  ))
+#table(gherman_2018$conf, useNA = "ifany")
+
+gherman_2018_wide <- gherman_2018 |>
+  filter(!is.na(conf)) %>% 
+  mutate(conf = factor(conf, 1:18)) %>% 
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf, .drop = FALSE) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+gherman_2018_plot<- gherman_2018 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+hu_2017 <- read_csv(file.path(data_path, "data_Hu_2017.csv")) |> mutate(dataset = "Hu_2017")
+
+hu_2017<- hu_2017 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  ))
+
+hu_2017_wide <- hu_2017 |>
+  mutate(conf = factor(conf, 1:12)) |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+hu_2017_plot<- hu_2017 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+jachs_2015_ex1 <- read_csv(file.path(data_path, "data_Jachs_2015_Exp1.csv")) |> mutate(dataset = "Jachs_2015_Ex1")
+
+jachs_2015_ex1<- jachs_2015_ex1 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |>
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+jachs_2015_ex1_wide <- jachs_2015_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+jachs_2015_ex1_plot<- jachs_2015_ex1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+jachs_2015_ex2 <- read_csv(file.path(data_path, "data_Jachs_2015_Exp2.csv")) |> mutate(dataset = "Jachs_2015_Ex2")
+
+jachs_2015_ex2<- jachs_2015_ex2 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |>
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+jachs_2015_ex2_wide <- jachs_2015_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+jachs_2015_ex2_plot<- jachs_2015_ex2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+jachs_2015_ex3 <- read_csv(file.path(data_path, "data_Jachs_2015_Exp3.csv")) |> mutate(dataset = "Jachs_2015_Ex3")
+
+jachs_2015_ex3<- jachs_2015_ex3 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 3 - Confidence,
+    resp ==  "signal" ~ 2 + Confidence
+  ))
+
+jachs_2015_ex3_wide <- jachs_2015_ex3 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+jachs_2015_ex3_plot<- jachs_2015_ex3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+```{r}
+kantner_2012_ex1 <- read_csv(file.path(data_path, "data_Kantner_2012_E1.csv")) |> mutate(dataset = "Kantner_2012_Ex1")
+
+kantner_2012_ex1<- kantner_2012_ex1 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+kantner_2012_ex1_wide <- kantner_2012_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )|>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 6), "_", rep(1:6, times = 2))))
+
+kantner_2012_ex1_plot<- kantner_2012_ex1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+kantner_2012_ex2 <- read_csv(file.path(data_path, "data_Kantner_2012_E2.csv")) |> mutate(dataset = "Kantner_2012_Ex2")
+
+kantner_2012_ex2<- kantner_2012_ex2 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+kantner_2012_ex2_wide <- kantner_2012_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+kantner_2012_ex2_plot<- kantner_2012_ex2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+kantner_2012_ex4 <- read_csv(file.path(data_path, "data_Kantner_2012_E4.csv")) |> mutate(dataset = "Kantner_2012_Ex4")
+
+kantner_2012_ex4<- kantner_2012_ex4 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+kantner_2012_ex4_wide <- kantner_2012_ex4 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+kantner_2012_ex4_plot<- kantner_2012_ex4 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+kantner_2014_ex1 <- read_csv(file.path(data_path, "data_Kantner_2014_E1.csv")) |> mutate(dataset = "Kantner_2014_Ex1")
+
+kantner_2014_ex1<- kantner_2014_ex1 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+kantner_2014_ex1_wide <- kantner_2014_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+kantner_2014_ex1_plot<- kantner_2014_ex1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+kantner_2014_ex2 <- read_csv(file.path(data_path, "data_Kantner_2014_E2.csv")) |> mutate(dataset = "Kantner_2014_Ex2")
+
+kantner_2014_ex2<- kantner_2014_ex2 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+kantner_2014_ex2_wide <- kantner_2014_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+kantner_2014_ex2_plot<- kantner_2014_ex2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+maniscalco_2017_ex1 <- read_csv(file.path(data_path, "data_Maniscalco_2017_expt1.csv")) |> mutate(dataset = "Maniscalco_2017_Ex1") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+maniscalco_2017_ex1<- maniscalco_2017_ex1 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+maniscalco_2017_ex1_wide <- maniscalco_2017_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+maniscalco_2017_ex1_plot<- maniscalco_2017_ex1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+rouault_2018_ex2 <- read_csv(file.path(data_path, "data_Rouault_2018_Expt2.csv")) |> mutate(dataset = "Rouault_2018_Ex2")
+
+rouault_2018_ex2<- rouault_2018_ex2 |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  ))
+
+rouault_2018_ex2_wide <- rouault_2018_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+rouault_2018_ex2_plot<- rouault_2018_ex2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+lindsay_2014 <- read_csv(file.path(data_path, "data_Lindsay_2014.csv")) |> mutate(dataset = "Lindsay_2014")
+
+lindsay_2014<- lindsay_2014 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 4 - Confidence,
+    resp ==  "signal" ~ 3 + Confidence
+  ))
+
+lindsay_2014_wide <- lindsay_2014 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+lindsay_2014_plot<- lindsay_2014 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory")
+```
+
+```{r}
+maniscalco_2017_ex3 <- read_csv(file.path(data_path, "data_Maniscalco_2017_expt3.csv")) |> mutate(dataset = "Maniscalco_2017_Ex3") |>
+  filter(ConfCollected == 1,
+         !is.na(Confidence))
+
+maniscalco_2017_ex3<- maniscalco_2017_ex3 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+maniscalco_2017_ex3_wide <- maniscalco_2017_ex3 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+maniscalco_2017_ex3_plot<- maniscalco_2017_ex3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+sinanaj_2015 <- read_csv(file.path(data_path, "data_Sinanaj_2015.csv")) |> mutate(dataset = "Sinanaj_2015")
+
+sinanaj_2015<- sinanaj_2015 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 6 - Confidence,
+    resp ==  "signal" ~ 5 + Confidence
+  ))
+
+sinanaj_2015_wide <- sinanaj_2015 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 10), "_", rep(1:10, times = 2))))
+
+sinanaj_2015_plot<- sinanaj_2015 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive")
+```
+
+```{r}
+song_2011 <- read_csv(file.path(data_path, "data_Song_2011.csv")) |> mutate(dataset = "Song_2011") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+song_2011<- song_2011 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  ))
+
+song_2011_wide <- song_2011 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+song_2011_plot<- song_2011 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception")
+```
+
+```{r}
+adler_2018_ex1 <- read_csv(file.path(data_path, "data_Adler_2018_Expt1.csv")) |> mutate(dataset = "Adler_2018_Ex1")
+
+adler_2018_ex1<- adler_2018_ex1 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Task == "A"~"1",
+    Task == "B"~"2"))
+
+adler_2018_ex1_wide <- adler_2018_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### Task A #######
+adler_2018_ex1_A<-adler_2018_ex1 |> 
+  filter(Task == "A")
+
+#cumulative probs
+adler_2018_ex1_A_plot<- adler_2018_ex1_A |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "A") 
+
+###### Task B #######
+adler_2018_ex1_B<-adler_2018_ex1 |> 
+  filter(Task == "B")
+
+#cumulative probs
+adler_2018_ex1_B_plot<- adler_2018_ex1_B |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "B")
+
+adler_2018_ex1_plots<- bind_rows(adler_2018_ex1_A_plot, adler_2018_ex1_B_plot)
+
+```
+
+```{r}
+adler_2018_ex2 <- read_csv(file.path(data_path, "data_Adler_2018_Expt2.csv")) |> mutate(dataset = "Adler_2018_Ex2")
+
+#4-point scale + wide format
+adler_2018_ex2<- adler_2018_ex2 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Task == "A"~"1",
+    Task == "B"~"2"))
+
+adler_2018_ex2_wide <- adler_2018_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### Task A #######
+adler_2018_ex2_A<-adler_2018_ex2 |> 
+  filter(Task == "A")
+
+#cumulative probs
+adler_2018_ex2_A_plot<- adler_2018_ex2_A |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "A") 
+
+###### Task B #######
+adler_2018_ex2_B<-adler_2018_ex2 |> 
+  filter(Task == "B")
+
+#cumulative probs
+adler_2018_ex2_B_plot<- adler_2018_ex2_B |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "B")
+
+adler_2018_ex2_plots<- bind_rows(adler_2018_ex2_A_plot, adler_2018_ex2_B_plot)
+
+```
+
+```{r}
+bang_2019_exp1 <- read_csv(file.path(data_path, "data_Bang_2019_Exp1.csv")) |> mutate(dataset = "Bang_2019_Ex1")
+
+#4-point scale + wide format
+bang_2019_exp1<- bang_2019_exp1 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+bang_2019_exp1_wide <- bang_2019_exp1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+###### Condition 1 #######
+bang_2019_exp1_cond1<-bang_2019_exp1 |> 
+  filter(Condition == 1)
+
+#cumulative probs
+bang_2019_exp1_cond1_plot<- bang_2019_exp1_cond1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1") 
+
+###### Condition 2 #######
+bang_2019_exp1_cond2<-bang_2019_exp1 |> 
+  filter(Condition == 2)
+
+#cumulative probs
+bang_2019_exp1_cond2_plot<- bang_2019_exp1_cond2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "2")
+
+###### Condition 3 #######
+bang_2019_exp1_cond3<-bang_2019_exp1 |> 
+  filter(Condition == 3)
+
+#cumulative probs
+bang_2019_exp1_cond3_plot<- bang_2019_exp1_cond3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "3")
+
+bang_2019_ex1_plots<- bind_rows(bang_2019_exp1_cond1_plot, bang_2019_exp1_cond2_plot,
+                                bang_2019_exp1_cond3_plot)
+```
+
+```{r}
+bang_2019_exp2 <- read_csv(file.path(data_path, "data_Bang_2019_Exp2.csv")) |> mutate(dataset = "Bang_2019_Ex2")
+
+#4-point scale + wide format
+bang_2019_exp2<- bang_2019_exp2 |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Task == "1"~"1",
+    Task == "2"~"2"))
+
+bang_2019_exp2_wide <- bang_2019_exp2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+  
+###### Task 1 (coarse discrimination) #######
+bang_2019_exp2_task1<-bang_2019_exp2 |> 
+  filter(Task == 1)
+
+#cumulative probs
+bang_2019_exp2_task1_plot<- bang_2019_exp2_task1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1") 
+
+###### Task 2 (fine discrimination) #######
+bang_2019_exp2_task2<-bang_2019_exp2 |> 
+  filter(Task == 2)
+
+#cumulative probs
+bang_2019_exp2_task2_plot<- bang_2019_exp2_task2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "2")
+
+bang_2019_ex2_plots<- bind_rows(bang_2019_exp2_task1_plot, bang_2019_exp2_task2_plot)
+```
+
+```{r}
+clark_2018 <- read_csv(file.path(data_path, "data_Clark_2018.csv")) |> mutate(dataset = "Clark_2018") |>
+  filter(!is.na(Confidence))
+
+#2-point scale + wide format
+clark_2018<- clark_2018 |> 
+  mutate(status = if_else(Stimulus == -1, "signal", "noise"), 
+         resp = if_else(Response == -1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 3 - Confidence,
+    resp ==  "signal" ~ 2 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Task == "2-stage binary/uncertainty"~"1",
+    Task == "2-stage trinary/binary"~"2",
+    Task == "1-stage binary/uncertainty"~"3"))
+
+clark_2018_wide <- clark_2018 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+###### Task 1 #######
+clark_2018_task1<-clark_2018 |> 
+  filter(Task == "2-stage binary/uncertainty")
+
+#cumulative probs
+clark_2018_task1_plot<- clark_2018_task1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1") 
+
+###### Task 2 #######
+clark_2018_task2<-clark_2018 |> 
+  filter(Task == "2-stage trinary/binary")
+
+#cumulative probs
+clark_2018_task2_plot<- clark_2018_task2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "2")
+
+###### Task 3 #######
+clark_2018_task3<-clark_2018 |> 
+  filter(Task == "1-stage binary/uncertainty")
+
+#cumulative probs
+clark_2018_task3_plot<- clark_2018_task3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "3")
+
+clark_2018_plots<- bind_rows(clark_2018_task1_plot, clark_2018_task2_plot, clark_2018_task3_plot)
+```
+
+```{r}
+denison_2018 <- read_csv(file.path(data_path, "data_Denison_2018.csv")) |> mutate(dataset = "Denison_2018")
+
+#4-point scale + wide format
+denison_2018<- denison_2018 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Difficulty == "1"~"1",
+    Difficulty == "2"~"2",
+    Difficulty == "3"~"3"))
+
+denison_2018_wide <- denison_2018 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+###### Valid condition #######
+denison_2018_1<-denison_2018 |> 
+  filter(Difficulty == 1)
+
+#cumulative probs
+denison_2018_1_plot<- denison_2018_1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "1") 
+
+###### Neutral condition #######
+denison_2018_2<-denison_2018 |> 
+  filter(Difficulty == 2)
+
+#cumulative probs
+denison_2018_2_plot<- denison_2018_2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "2")
+
+###### Invalid condition #######
+denison_2018_3<-denison_2018 |> 
+  filter(Difficulty == 3)
+
+#cumulative probs
+denison_2018_3_plot<- denison_2018_3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "3")
+
+denison_2018_plots<- bind_rows(denison_2018_1_plot, denison_2018_2_plot, denison_2018_3_plot)
+```
+
+```{r}
+desender_2022_ex1 <- read_csv(file.path(data_path, "data_Desender_2022_Exp1.csv")) |> mutate(dataset = "Desender_2022_Ex1") |>
+  filter(!is.na(Confidence))
+
+#6-point scale + wide format
+desender_2022_ex1<- desender_2022_ex1 |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  )) 
+
+desender_2022_ex1_wide <- desender_2022_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+###### Speed condition #######
+desender_2022_ex1_speed<-desender_2022_ex1 |> 
+  filter(Condition == "speed")
+
+#cumulative probs
+desender_2022_ex1_speed_plot<- desender_2022_ex1_speed |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "speed") 
+
+###### Accuracy condition #######
+desender_2022_ex1_accuracy<-desender_2022_ex1 |> 
+  filter(Condition == "accuracy")
+
+#cumulative probs
+desender_2022_ex1_accuracy_plot<- desender_2022_ex1_accuracy |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "accuracy")
+
+desender_2022_ex1_plots<- bind_rows(desender_2022_ex1_accuracy_plot,
+                                    desender_2022_ex1_speed_plot)
+```
+
+```{r}
+haddara_2022_ex1 <- read_csv(file.path(data_path, "data_Haddara_2022_Expt1.csv")) |> mutate(dataset = "Haddara_2022_Ex1")
+
+#4-point scale + wide format
+haddara_2022_ex1<- haddara_2022_ex1 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Task == "1"~"1",
+    Task == "2"~"2"))
+
+haddara_2022_ex1_wide <- haddara_2022_ex1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### Task 1 #######
+haddara_2022_ex1_task1<-haddara_2022_ex1 |> 
+  filter(Task == 1)
+
+#cumulative probs
+haddara_2022_ex1_task1_plot<- haddara_2022_ex1_task1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1") 
+
+###### Task 2 #######
+haddara_2022_ex1_task2<-haddara_2022_ex1 |> 
+  filter(Task == 2)
+
+#cumulative probs
+haddara_2022_ex1_task2_plot<- haddara_2022_ex1_task2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "2") 
+
+haddara_2022_ex1_plots<- bind_rows(haddara_2022_ex1_task1_plot,
+                                    haddara_2022_ex1_task2_plot)
+```
+
+```{r}
+haddara_2022_ex2 <- read_csv(file.path(data_path, "data_Haddara_2022_Expt2.csv")) |> mutate(dataset = "Haddara_2022_Ex2")
+
+#4-point scale + wide format
+haddara_2022_ex2<- haddara_2022_ex2 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    Feedback == "1"~"1",
+    Feedback == "0"~"2"))
+
+haddara_2022_ex2_wide <- haddara_2022_ex2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+###### feedback condition #######
+haddara_2022_ex2_f<-haddara_2022_ex2 |> 
+  filter(Feedback == 1)
+
+#cumulative probs
+haddara_2022_ex2_f_plot<- haddara_2022_ex2_f |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1") 
+
+###### no feedback condition #######
+haddara_2022_ex2_nf<-haddara_2022_ex2 |> 
+  filter(Feedback == 0)
+
+#cumulative probs
+haddara_2022_ex2_nf_plot<- haddara_2022_ex2_nf |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "0") 
+
+haddara_2022_ex2_plots<- bind_rows(haddara_2022_ex2_f_plot,
+                                   haddara_2022_ex2_nf_plot)
+```
+
+```{r}
+mazor_2020 <- read_csv(file.path(data_path, "data_Mazor_2020.csv")) |>
+  filter(!is.na(Confidence))
+```
+
+```{r}
+mazor_2020_disc<-mazor_2020 |> 
+  filter(Condition == "Discrimination") |> mutate(dataset = "Mazor_2020_disc")
+
+mazor_2020_disc<- mazor_2020_disc |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  )) 
+
+mazor_2020_disc_wide<- mazor_2020_disc |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+mazor_2020_disc_plot<- mazor_2020_disc |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception") 
+```
+
+```{r}
+mazor_2020_detect<-mazor_2020 |> 
+  filter(Condition == "Detection") |> mutate(dataset = "Mazor_2020_detect")
+
+mazor_2020_detect<- mazor_2020_detect |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  )) 
+
+mazor_2020_detect_wide<- mazor_2020_detect |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+mazor_2020_detect_plot<- mazor_2020_detect |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception") 
+```
+
+
+```{r}
+rausch_2020 <- read_csv(file.path(data_path, "data_Rausch_2020.csv")) |> mutate(dataset = "Rausch_2020")
+
+#4-point scale + wide format
+rausch_2020<- rausch_2020 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    SOA == "16.7"~"1",
+    SOA == "33.3"~"2",
+    SOA == "66.7"~"3"))
+
+rausch_2020_wide <- rausch_2020 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  filter(!is.na(Condition)) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### SOA 16.7 #######
+rausch_2020_soa1<-rausch_2020 |> 
+  filter(SOA == 16.7)
+
+#cumulative probs
+rausch_2020_soa1_plot<- rausch_2020_soa1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "16.7")
+
+###### SOA 33.3 #######
+rausch_2020_soa2<-rausch_2020 |> 
+  filter(SOA == 33.3)
+
+#cumulative probs
+rausch_2020_soa2_plot<- rausch_2020_soa2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "33.3")
+
+###### SOA 66.7 #######
+rausch_2020_soa3<-rausch_2020 |> 
+  filter(SOA == 66.7)
+
+#cumulative probs
+rausch_2020_soa3_plot<- rausch_2020_soa3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "66.7")
+
+
+rausch_2020_plots<- bind_rows(rausch_2020_soa1_plot,
+                             rausch_2020_soa2_plot,
+                             rausch_2020_soa3_plot)
+```
+
+```{r}
+sadeghi_2017_memory <- read_csv(file.path(data_path, "data_Sadeghi_2017_memory.csv")) |> mutate(dataset = "Sadeghi_2017_Memory")
+
+#6-point scale + wide format
+sadeghi_2017_memory<- sadeghi_2017_memory |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    group == "patient"~"1",
+    group == "control"~"2"))
+
+sadeghi_2017_memory_wide <- sadeghi_2017_memory |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+###### patient group #######
+sadeghi_2017_memory_p<-sadeghi_2017_memory |> 
+  filter(group == "patient")
+
+#cumulative probs
+sadeghi_2017_memory_p_plot<- sadeghi_2017_memory_p |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "patient")
+
+###### control group #######
+sadeghi_2017_memory_c<-sadeghi_2017_memory |> 
+  filter(group == "control")
+
+#cumulative probs
+sadeghi_2017_memory_c_plot<- sadeghi_2017_memory_c |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "control")
+
+sadeghi_2017_memory_plots<- bind_rows(sadeghi_2017_memory_p_plot,
+                              sadeghi_2017_memory_c_plot)
+```
+
+```{r}
+sadeghi_2017_perception <- read_csv(file.path(data_path, "data_Sadeghi_2017_perception.csv")) |> mutate(dataset = "Sadeghi_2017_Perception")
+
+#6-point scale + wide format
+sadeghi_2017_perception<- sadeghi_2017_perception |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 7 - Confidence,
+    resp ==  "signal" ~ 6 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    group == "patient"~"1",
+    group == "control"~"2"))
+
+sadeghi_2017_perception_wide <- sadeghi_2017_perception |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 12), "_", rep(1:12, times = 2))))
+
+###### patient group #######
+sadeghi_2017_perception_p<-sadeghi_2017_perception |> 
+  filter(group == "patient")
+
+#cumulative probs
+sadeghi_2017_perception_p_plot<- sadeghi_2017_perception_p |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "patient")
+
+###### control group #######
+sadeghi_2017_perception_c<-sadeghi_2017_perception |> 
+  filter(group == "control")
+
+#cumulative probs
+sadeghi_2017_perception_c_plot<- sadeghi_2017_perception_c |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "control")
+
+sadeghi_2017_perception_plots<- bind_rows(sadeghi_2017_perception_p_plot,
+                                      sadeghi_2017_perception_c_plot)
+```
+
+```{r}
+shekhar_2018 <- read_csv(file.path(data_path, "data_Shekhar_2018.csv")) |> mutate(dataset = "Shekhar_2018")
+
+#4-point scale + wide format
+shekhar_2018<- shekhar_2018 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  )) |>
+  mutate(Condition = case_when(
+    TMSsite == "1"~"1",
+    TMSsite == "2"~"2",
+    TMSsite == "3"~"3"))
+
+shekhar_2018_wide <- shekhar_2018 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### S1 #######
+shekhar_2018_s1<-shekhar_2018 |> 
+  filter(TMSsite == 1)
+
+#cumulative probs
+shekhar_2018_s1_plot<- shekhar_2018_s1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "S1")
+
+###### DLPFC #######
+shekhar_2018_dlpfc<-shekhar_2018 |> 
+  filter(TMSsite == 2)
+
+#cumulative probs
+shekhar_2018_dlpfc_plot<- shekhar_2018_dlpfc |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "DLPFC")
+
+###### aPFC #######
+shekhar_2018_apfc<-shekhar_2018 |> 
+  filter(TMSsite == 3)
+
+#cumulative probs
+shekhar_2018_apfc_plot<- shekhar_2018_apfc |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "aPFC")
+
+shekhar_2018_plots<- bind_rows(shekhar_2018_s1_plot,
+                              shekhar_2018_dlpfc_plot,
+                              shekhar_2018_apfc_plot)
+```
+
+```{r}
+sherman_2016_jocn<- read_csv(file.path(data_path, "data_Sherman_2016_JOCN.csv")) |> mutate(dataset = "Sherman_2016_JOCN") 
+
+#4-point scale + wide format
+sherman_2016_jocn<- sherman_2016_jocn |> 
+  mutate(status = if_else(Stimulus == 0, "signal", "noise"), 
+         resp = if_else(Response == 0, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+sherman_2016_jocn_wide <- sherman_2016_jocn |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+###### condition 1: full attention, expect target absent #######
+sherman_2016_jocn_1<-sherman_2016_jocn |> 
+  filter(Condition == 1)
+
+#cumulative probs
+sherman_2016_jocn_1_plot<- sherman_2016_jocn_1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "1")
+
+###### condition 2: full attention, expect target present ######
+sherman_2016_jocn_2<-sherman_2016_jocn |> 
+  filter(Condition == 2)
+
+#cumulative probs
+sherman_2016_jocn_2_plot<- sherman_2016_jocn_2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "2")
+
+###### condition 3: diverted attention, expect target absent ######
+sherman_2016_jocn_3<-sherman_2016_jocn |> 
+  filter(Condition == 3)
+
+#cumulative probs
+sherman_2016_jocn_3_plot<- sherman_2016_jocn_3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "3")
+
+###### condition 4: diverted attention, expect target present ######
+sherman_2016_jocn_4<-sherman_2016_jocn |> 
+  filter(Condition == 4)
+
+#cumulative probs
+sherman_2016_jocn_4_plot<- sherman_2016_jocn_4 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "4")
+
+sherman_2016_jocn_plots<- bind_rows(sherman_2016_jocn_1_plot,
+                               sherman_2016_jocn_2_plot,
+                               sherman_2016_jocn_3_plot,
+                               sherman_2016_jocn_4_plot)
+```
+
+```{r}
+siedlecka_2016<- read_csv(file.path(data_path, "data_Siedlecka_2016.csv")) |> mutate(dataset = "Siedlecka_2016") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale + wide format
+siedlecka_2016<- siedlecka_2016 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+siedlecka_2016_wide <- siedlecka_2016 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### condition 1: MtD #######
+siedlecka_2016_1<-siedlecka_2016 |> 
+  filter(Condition == 1)
+
+#cumulative probs
+siedlecka_2016_1_plot<- siedlecka_2016_1 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "1")
+
+###### condition 2: tDM #######
+siedlecka_2016_2<-siedlecka_2016 |> 
+  filter(Condition == 2)
+
+#cumulative probs
+siedlecka_2016_2_plot<- siedlecka_2016_2 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "2")
+
+###### condition 3: tMD #######
+siedlecka_2016_3<-siedlecka_2016 |> 
+  filter(Condition == 3)
+
+#cumulative probs
+siedlecka_2016_3_plot<- siedlecka_2016_3 |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "3")
+
+siedlecka_2016_plots<- bind_rows(siedlecka_2016_1_plot,
+                                    siedlecka_2016_2_plot,
+                                    siedlecka_2016_3_plot)
+```
+
+```{r}
+siedlecka_2019_1<- read_csv(file.path(data_path, "data_Siedlecka_2019_Exp1.csv")) |> mutate(dataset = "Siedlecka_2019_Ex1") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale + wide format
+siedlecka_2019_1<- siedlecka_2019_1 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+siedlecka_2019_1_wide <- siedlecka_2019_1 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### condition 0: response first #######
+siedlecka_2019_1_resp<-siedlecka_2019_1 |> 
+  filter(Condition == 0)
+
+#cumulative probs
+siedlecka_2019_1_resp_plot<- siedlecka_2019_1_resp |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "0")
+
+###### condition 1: rating first #######
+siedlecka_2019_1_conf<-siedlecka_2019_1 |> 
+  filter(Condition == 1)
+
+#cumulative probs
+siedlecka_2019_1_conf_plot<- siedlecka_2019_1_conf |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "1")
+
+siedlecka_2019_1_plots<- bind_rows(siedlecka_2019_1_resp_plot,
+                                 siedlecka_2019_1_conf_plot)
+```
+
+```{r}
+siedlecka_2019_2<- read_csv(file.path(data_path, "data_Siedlecka_2019_Exp2.csv")) |> mutate(dataset = "Siedlecka_2019_Ex2") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale + wide format
+siedlecka_2019_2<- siedlecka_2019_2 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+siedlecka_2019_2_wide <- siedlecka_2019_2 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### condition 0: decision first #######
+siedlecka_2019_2_dec<-siedlecka_2019_2 |> 
+  filter(Condition == 0)
+
+#cumulative probs
+siedlecka_2019_2_dec_plot<- siedlecka_2019_2_dec |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "0")
+
+###### condition 1: rating first #######
+siedlecka_2019_2_conf<-siedlecka_2019_2 |> 
+  filter(Condition == 1)
+
+#cumulative probs
+siedlecka_2019_2_conf_plot<- siedlecka_2019_2_conf |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "1")
+
+siedlecka_2019_2_plots<- bind_rows(siedlecka_2019_2_dec_plot,
+                                   siedlecka_2019_2_conf_plot)
+```
+
+```{r}
+skora_2016<- read_csv(file.path(data_path, "data_Skora_2016.csv")) |> mutate(dataset = "Skora_2016")|>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale + wide format
+skora_2016<- skora_2016 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+skora_2016_wide <- skora_2016 |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+###### condition FM: fragile memory (1000ms) #######
+skora_2016_fm<-skora_2016 |> 
+  filter(Condition == "FM")
+
+#cumulative probs
+skora_2016_fm_plot<- skora_2016_fm |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "FM")
+
+###### condition IM: iconic memory (50ms) #######
+skora_2016_im<-skora_2016 |> 
+  filter(Condition == "IM")
+
+#cumulative probs
+skora_2016_im_plot<- skora_2016_im |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "IM")
+
+###### condition WM: working memory (1000ms after) #######
+skora_2016_wm<-skora_2016 |> 
+  filter(Condition == "WM")
+
+#cumulative probs
+skora_2016_wm_plot<- skora_2016_wm |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "WM")
+
+skora_2016_plots<- bind_rows(skora_2016_fm_plot,
+                                   skora_2016_im_plot,
+                             skora_2016_wm_plot)
+```
+
+```{r}
+xu_2019_ex1<- read_csv(file.path(data_path, "data_Xu_2019_Exp1.csv")) |> mutate(dataset = "Xu_2019_Ex1") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale
+xu_2019_ex1<- xu_2019_ex1 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+##### cognitive task ####
+xu_2019_ex1_c<- xu_2019_ex1 |> filter(Task=="C")
+
+xu_2019_ex1_c_wide <- xu_2019_ex1_c |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+#congruent condition
+xu_2019_ex1_c_congruent<-xu_2019_ex1_c |> 
+  filter(Condition == "Congruent")
+
+#cumulative probs
+xu_2019_ex1_c_congruent_plot<- xu_2019_ex1_c_congruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "congruent")
+
+#incongruent condition
+xu_2019_ex1_c_incongruent<-xu_2019_ex1_c |> 
+  filter(Condition == "Incongruent")
+
+#cumulative probs
+xu_2019_ex1_c_incongruent_plot<- xu_2019_ex1_c_incongruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "incongruent")
+
+xu_2019_ex1_c_plots<- bind_rows(xu_2019_ex1_c_congruent_plot,
+                                xu_2019_ex1_c_incongruent_plot)
+
+#### memory task ####
+xu_2019_ex1_m<- xu_2019_ex1 |> filter(Task=="N")
+
+xu_2019_ex1_m_wide <- xu_2019_ex1_m |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+#congruent condition
+xu_2019_ex1_m_congruent<-xu_2019_ex1_m |> 
+  filter(Condition == "Congruent")
+
+#cumulative probs
+xu_2019_ex1_m_congruent_plot<- xu_2019_ex1_m_congruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "congruent")
+
+#incongruent condition
+xu_2019_ex1_m_incongruent<-xu_2019_ex1_m |> 
+  filter(Condition == "Incongruent")
+
+#cumulative probs
+xu_2019_ex1_m_incongruent_plot<- xu_2019_ex1_m_incongruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "incongruent")
+
+xu_2019_ex1_m_plots<- bind_rows(xu_2019_ex1_m_congruent_plot,
+                                xu_2019_ex1_m_incongruent_plot)
+```
+
+```{r}
+xu_2019_ex2<- read_csv(file.path(data_path, "data_Xu_2019_Exp2.csv")) |> mutate(dataset = "Xu_2019_Ex2") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale
+xu_2019_ex2<- xu_2019_ex2 |> 
+  mutate(status = if_else(Stimulus == 2, "signal", "noise"), 
+         resp = if_else(Response == 2, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+##### cognitive task ####
+xu_2019_ex2_c<- xu_2019_ex2 |> filter(Task=="C")
+
+xu_2019_ex2_c_wide <- xu_2019_ex2_c |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+#congruent condition
+xu_2019_ex2_c_congruent<-xu_2019_ex2_c |> 
+  filter(Condition == "Congruent")
+
+#cumulative probs
+xu_2019_ex2_c_congruent_plot<- xu_2019_ex2_c_congruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "congruent")
+
+#incongruent condition
+xu_2019_ex2_c_incongruent<-xu_2019_ex2_c |> 
+  filter(Condition == "Incongruent")
+
+#cumulative probs
+xu_2019_ex2_c_incongruent_plot<- xu_2019_ex2_c_incongruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Cognitive",
+                               condition = "incongruent")
+
+xu_2019_ex2_c_plots<- bind_rows(xu_2019_ex2_c_congruent_plot,
+                                xu_2019_ex2_c_incongruent_plot)
+
+#### memory task ####
+xu_2019_ex2_m<- xu_2019_ex2 |> filter(Task=="N")
+
+xu_2019_ex2_m_wide <- xu_2019_ex2_m |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+#congruent condition
+xu_2019_ex2_m_congruent<-xu_2019_ex2_m |> 
+  filter(Condition == "Congruent")
+
+#cumulative probs
+xu_2019_ex2_m_congruent_plot<- xu_2019_ex2_m_congruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "congruent")
+
+#incongruent condition
+xu_2019_ex2_m_incongruent<-xu_2019_ex2_m |> 
+  filter(Condition == "Incongruent")
+
+#cumulative probs
+xu_2019_ex2_m_incongruent_plot<- xu_2019_ex2_m_incongruent |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "incongruent")
+
+xu_2019_ex2_m_plots<- bind_rows(xu_2019_ex2_m_congruent_plot,
+                                xu_2019_ex2_m_incongruent_plot)
+```
+
+```{r}
+ye_2018<- read_csv(file.path(data_path, "data_Ye_2018.csv")) |> mutate(dataset = "Ye_2018") |>
+  filter(!is.na(Confidence),
+         !is.na(Response))
+
+#4-point scale
+ye_2018<- ye_2018 |> 
+  mutate(status = if_else(Stimulus == 1, "signal", "noise"), 
+         resp = if_else(Response == 1, "signal", "noise")) |> 
+  mutate(conf = case_when(
+    resp ==  "noise" ~ 5 - Confidence,
+    resp ==  "signal" ~ 4 + Confidence
+  ))
+
+### perception task ###
+ye_2018_p<- ye_2018 |> filter(Task=="perception")
+
+ye_2018_p_wide <- ye_2018_p |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  ) |>
+  select(
+    Subj_idx,
+    Condition,
+    all_of(
+      paste0(
+        rep(c("signal", "noise"), each = 8), "_", rep(1:8, times = 2))))
+
+#precuneus TMS condition
+ye_2018_p_precuneus<-ye_2018_p |> 
+  filter(Condition == 1)
+
+#cumulative probs
+ye_2018_p_precuneus_plot<- ye_2018_p_precuneus |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "precuneus")
+
+#vertex condition
+ye_2018_p_vertex<-ye_2018_p |> 
+  filter(Condition == 2)
+
+#cumulative probs
+ye_2018_p_vertex_plot<- ye_2018_p_vertex |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Perception",
+                               condition = "vertex")
+
+ye_2018_p_plots<- bind_rows(ye_2018_p_precuneus_plot,
+                                ye_2018_p_vertex_plot)
+
+### memory task ###
+ye_2018_m<- ye_2018 |> filter(Task=="memory")
+
+ye_2018_m_wide <- ye_2018_m |>
+  mutate(status = factor(status, levels = c("signal", "noise"))) %>%
+  count(Subj_idx, Condition, status, conf) |>
+  pivot_wider(
+    names_from = c(status, conf),
+    values_from = n,
+    values_fill = 0
+  )
+
+#precuneus TMS condition
+ye_2018_m_precuneus<-ye_2018_m |> 
+  filter(Condition == 1)
+
+#cumulative probs
+ye_2018_m_precuneus_plot<- ye_2018_m_precuneus |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "precuneus")
+
+#vertex condition
+ye_2018_m_vertex<-ye_2018_m |> 
+  filter(Condition == 2)
+
+#cumulative probs
+ye_2018_m_vertex_plot<- ye_2018_m_vertex |>
+  count(status, conf, dataset) |>
+  group_by(dataset, status) |>
+  mutate(prob = n/sum(n)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = status, values_from = prob, values_fill = 0)|>
+  arrange(desc(conf))|>
+  mutate(across(c(noise, signal), cumsum)) |>
+  filter(conf !="1") |> mutate(category = "Memory",
+                               condition = "vertex")
+
+ye_2018_m_plots<- bind_rows(ye_2018_m_precuneus_plot,
+                            ye_2018_m_vertex_plot)
+```
+
+```{r}
+plot_data<-bind_rows(adler_2018_ex3_plot, rouault_2018_ex2_plot,
+             chandravadia_2020_plot, desender_2022_p2B_plot,
+             gajdos_2019_plot, gherman_2018_plot, hu_2017_plot,
+             jachs_2015_ex1_plot, jachs_2015_ex2_plot,
+             jachs_2015_ex3_plot, kantner_2012_ex1_plot,
+             kantner_2012_ex2_plot, kantner_2012_ex4_plot,
+             kantner_2014_ex1_plot, kantner_2014_ex2_plot,
+             lindsay_2014_plot, maniscalco_2017_ex3_plot,
+             maniscalco_2017_ex1_plot, rouault_2018_ex2_plot,
+             sinanaj_2015_plot, song_2011_plot,
+             adler_2018_ex1_plots, adler_2018_ex2_plots,
+             bang_2019_ex1_plots, bang_2019_ex2_plots,
+             clark_2018_plots, denison_2018_plots,
+             desender_2022_ex1_plots, haddara_2022_ex1_plots,
+             haddara_2022_ex2_plots, mazor_2020_detect_plot,
+             mazor_2020_disc_plot,
+             rausch_2020_plots, sadeghi_2017_memory_plots,
+             sadeghi_2017_perception_plots, shekhar_2018_plots,
+             sherman_2016_jocn_plots, siedlecka_2016_plots,
+             siedlecka_2019_1_plots, siedlecka_2019_2_plots,
+             skora_2016_plots, xu_2019_ex1_c_plots,
+             xu_2019_ex1_m_plots, xu_2019_ex2_c_plots,
+             xu_2019_ex2_m_plots, ye_2018_p_plots, 
+             ye_2018_m_plots)
+             
+```
+
+```{r}
+plot_data_flagged <- plot_data %>%
+  group_by(dataset) %>%
+  mutate(multi_cond = n_distinct(condition) > 1)
+```
+
+
+## Cognitive
+```{r, include=TRUE, out.width='70%', fig.width=10, fig.height=10}
+#cognitive experiment graphs
+plot_data_flagged %>% filter(category=="Cognitive") %>% 
+  ggplot(aes(x = noise, y = signal)) +
+  geom_abline(slope = -1, intercept = 1, linetype = 2) +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = "white") +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = rgb(0.7, 0.7, 0.7, alpha = 0.4)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_line(aes(group = ifelse(multi_cond, condition, 1)), linewidth = 1) +
+  geom_point(size = 2.5) +
+  coord_fixed(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
+  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
+  scale_y_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))+
+  facet_wrap(vars(dataset))
+```
+
+## Perception
+```{r, include=TRUE, out.width='120%', fig.width=15, fig.height=15}
+#perception experiments
+plot_data_flagged %>% filter(category=="Perception") %>% 
+  ggplot(aes(x = noise, y = signal)) +
+  geom_abline(slope = -1, intercept = 1, linetype = 2) +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = "white") +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = rgb(0.7, 0.7, 0.7, alpha = 0.4)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_line(aes(group = ifelse(multi_cond, condition, 1)), linewidth = 1) +
+  geom_point(size = 2.5) +
+  coord_fixed(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
+  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
+  scale_y_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))+
+  facet_wrap(vars(dataset))
+```
+
+## Memory
+```{r, include=TRUE, out.width='80%', fig.width=10, fig.height=10}
+#memory experiment graphs
+plot_data_flagged %>% filter(category=="Memory") %>% 
+  ggplot(aes(x = noise, y = signal)) +
+  geom_abline(slope = -1, intercept = 1, linetype = 2) +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = "white") +
+  annotate(geom = "polygon", 
+           x = c(-Inf, Inf, Inf), y = c(-Inf, Inf, -Inf), fill = rgb(0.7, 0.7, 0.7, alpha = 0.4)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_line(aes(group = ifelse(multi_cond, condition, 1)), linewidth = 1) +
+  geom_point(size = 2.5) +
+  coord_fixed(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
+  scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
+  scale_y_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))+
+  facet_wrap(vars(dataset))
+
+```
