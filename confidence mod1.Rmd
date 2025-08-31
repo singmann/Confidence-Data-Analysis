@@ -1,0 +1,1974 @@
+---
+title: "confidence mod1"
+output: html_document
+date: "2025-08-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library("tidyverse")
+library("MPTinR")
+source("model-fun-rocs.R")
+
+NOPTIM <- 20
+columns_mod_selection <- c(
+  "model",
+  "n.parameters",
+  "G.Squared.sum",
+  "p.smaller.05",
+  "delta.AIC.sum",
+  "G.Squared.aggregated",
+  "delta.AIC.aggregated"
+)
+
+load("confidence_data_wide.RData")
+
+str(df_list, 1)
+```
+
+```{r}
+df_list[["adler_2018_ex1"]]
+
+fit_uvsdt_a18e1 <- fit.mptinr(
+  df_list[["adler_2018_ex1"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_a18e1 <- fit.mptinr(
+  df_list[["adler_2018_ex1"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_a18e1 <- select.mpt(list(fit_uvsdt_a18e1, fit_evsdt_a18e1), output = "full")
+
+individual_sd_a18e1<- fit_uvsdt_a18e1$parameters$individual
+
+adler_2018_ex1_mod<- data.frame(
+  dataset = "Adler 2018 Ex1",
+  N = length(unique(df_list[["adler_2018_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_a18e1$delta.AIC.sum[out_a18e1$model == "fit_uvsdt_a18e1"],
+  AIC.EVSD.indiv = out_a18e1$delta.AIC.sum[out_a18e1$model == "fit_evsdt_a18e1"],
+  AIC.UVSD.agg = out_a18e1$delta.AIC.aggregated[out_a18e1$model == "fit_uvsdt_a18e1"],
+  AIC.EVSD.agg = out_a18e1$delta.AIC.aggregated[out_a18e1$model == "fit_evsdt_a18e1"],
+  SD.UVSD.agg = fit_uvsdt_a18e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_a18e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_a18e1["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_a18e1["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["adler_2018_ex2"]]
+
+fit_uvsdt_a18e2 <- fit.mptinr(
+  df_list[["adler_2018_ex2"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_a18e2 <- fit.mptinr(
+  df_list[["adler_2018_ex2"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_a18e2 <- select.mpt(list(fit_uvsdt_a18e2, fit_evsdt_a18e2), output = "full")
+
+individual_sd_a18e2<- fit_uvsdt_a18e2$parameters$individual
+
+adler_2018_ex2_mod<- data.frame(
+  dataset = "Adler 2018 Ex2",
+  N = length(unique(df_list[["adler_2018_ex2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_a18e2$delta.AIC.sum[out_a18e2$model == "fit_uvsdt_a18e2"],
+  AIC.EVSD.indiv = out_a18e2$delta.AIC.sum[out_a18e2$model == "fit_evsdt_a18e2"],
+  AIC.UVSD.agg = out_a18e2$delta.AIC.aggregated[out_a18e2$model == "fit_uvsdt_a18e2"],
+  AIC.EVSD.agg = out_a18e2$delta.AIC.aggregated[out_a18e2$model == "fit_evsdt_a18e2"],
+  SD.UVSD.agg = fit_uvsdt_a18e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_a18e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_a18e2["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_a18e2["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["adler_2018_ex3"]]
+
+fit_uvsdt_a18e3 <- fit.mptinr(
+  df_list[["adler_2018_ex3"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_a18e3 <- fit.mptinr(
+  df_list[["adler_2018_ex3"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_a18e3 <- select.mpt(list(fit_uvsdt_a18e3, fit_evsdt_a18e3), output = "full")
+
+individual_sd_a18e3<- fit_uvsdt_a18e3$parameters$individual
+
+adler_2018_ex3_mod<- data.frame(
+  dataset = "Adler 2018 Ex3",
+  N = length(unique(df_list[["adler_2018_ex3"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_a18e3$delta.AIC.sum[out_a18e3$model == "fit_uvsdt_a18e3"],
+  AIC.EVSD.indiv = out_a18e3$delta.AIC.sum[out_a18e3$model == "fit_evsdt_a18e3"],
+  AIC.UVSD.agg = out_a18e3$delta.AIC.aggregated[out_a18e3$model == "fit_uvsdt_a18e3"],
+  AIC.EVSD.agg = out_a18e3$delta.AIC.aggregated[out_a18e3$model == "fit_evsdt_a18e3"],
+  SD.UVSD.agg = fit_uvsdt_a18e3$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_a18e3["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_a18e3["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_a18e3["sd", "estimates", ] %>%  quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["bang_2019_exp1"]]
+
+fit_uvsdt_b19e1 <- fit.mptinr(
+  df_list[["bang_2019_exp1"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_b19e1 <- fit.mptinr(
+  df_list[["bang_2019_exp1"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_b19e1 <- select.mpt(list(fit_uvsdt_b19e1, fit_evsdt_b19e1), 
+           output = "full")
+
+individual_sd_b19e1<- fit_uvsdt_b19e1$parameters$individual
+
+bang_2019_ex1_mod<- data.frame(
+  dataset = "Bang 2019 Ex1",
+  N = length(unique(df_list[["bang_2019_exp1"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_b19e1$delta.AIC.sum[out_b19e1$model == "fit_uvsdt_b19e1"],
+  AIC.EVSD.indiv = out_b19e1$delta.AIC.sum[out_b19e1$model == "fit_evsdt_b19e1"],
+  AIC.UVSD.agg = out_b19e1$delta.AIC.aggregated[out_b19e1$model == "fit_uvsdt_b19e1"],
+  AIC.EVSD.agg = out_b19e1$delta.AIC.aggregated[out_b19e1$model == "fit_evsdt_b19e1"],
+  SD.UVSD.agg = fit_uvsdt_b19e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_b19e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_b19e1["sd", "estimates", ] %>%  quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_b19e1["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["bang_2019_exp2"]]
+
+fit_uvsdt_b19e2 <- fit.mptinr(
+  df_list[["bang_2019_exp2"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_b19e2 <- fit.mptinr(
+  df_list[["bang_2019_exp2"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_b19e2 <- select.mpt(list(fit_uvsdt_b19e2, fit_evsdt_b19e2), 
+                        output = "full")
+
+individual_sd_b19e2<- fit_uvsdt_b19e2$parameters$individual
+
+bang_2019_ex2_mod<- data.frame(
+  dataset = "Bang 2019 Ex2",
+  N = length(unique(df_list[["bang_2019_exp2"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_b19e2$delta.AIC.sum[out_b19e2$model == "fit_uvsdt_b19e2"],
+  AIC.EVSD.indiv = out_b19e2$delta.AIC.sum[out_b19e2$model == "fit_evsdt_b19e2"],
+  AIC.UVSD.agg = out_b19e2$delta.AIC.aggregated[out_b19e2$model == "fit_uvsdt_b19e2"],
+  AIC.EVSD.agg = out_b19e2$delta.AIC.aggregated[out_b19e2$model == "fit_evsdt_b19e2"],
+  SD.UVSD.agg = fit_uvsdt_b19e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_b19e2["sd", "estimates", ] %>% median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_b19e2["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_b19e2["sd", "estimates", ] %>%quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["clark_2018"]]
+
+fit_uvsdt_c18 <- fit.mptinr(
+  df_list[["clark_2018"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 1), paste0("cr", 1)),
+  categories.per.type = c(4,4),
+  lower.bound=c(0, -Inf, rep(0, 3)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_c18 <- fit.mptinr(
+  df_list[["clark_2018"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 1), paste0("cr", 1)),
+  categories.per.type = c(4,4),
+  lower.bound=c(0, -Inf, rep(0, 2)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_c18 <- select.mpt(list(fit_uvsdt_c18, fit_evsdt_c18), 
+           output = "full")
+
+individual_sd_c18<- fit_uvsdt_c18$parameters$individual
+
+clark_2018_mod<- data.frame(
+  dataset = "Clark 2018",
+  N = length(unique(df_list[["clark_2018"]]$Subj_idx)),
+   Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_c18$delta.AIC.sum[out_c18$model == "fit_uvsdt_c18"],
+  AIC.EVSD.indiv = out_c18$delta.AIC.sum[out_c18$model == "fit_evsdt_c18"],
+  AIC.UVSD.agg = out_c18$delta.AIC.aggregated[out_c18$model == "fit_uvsdt_c18"],
+  AIC.EVSD.agg = out_c18$delta.AIC.aggregated[out_c18$model == "fit_evsdt_c18"],
+  SD.UVSD.agg = fit_uvsdt_c18$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_c18["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_c18["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_c18["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["chandravadia_2020"]]
+
+fit_uvsdt_c20 <- fit.mptinr(
+  df_list[["chandravadia_2020"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_c20 <- fit.mptinr(
+  df_list[["chandravadia_2020"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_c20<-select.mpt(list(fit_uvsdt_c20, fit_evsdt_c20), 
+           output = "full")
+
+individual_sd_c20<- fit_uvsdt_c20$parameters$individual
+
+chandravadia_2020_mod<- data.frame(
+  dataset = "Chandravadia 2020",
+  N = length(unique(df_list[["chandravadia_2020"]]$patientNumber)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_c20$delta.AIC.sum[out_c20$model == "fit_uvsdt_c20"],
+  AIC.EVSD.indiv = out_c20$delta.AIC.sum[out_c20$model == "fit_evsdt_c20"],
+  AIC.UVSD.agg = out_c20$delta.AIC.aggregated[out_c20$model == "fit_uvsdt_c20"],
+  AIC.EVSD.agg = out_c20$delta.AIC.aggregated[out_c20$model == "fit_evsdt_c20"],
+  SD.UVSD.agg = fit_uvsdt_c20$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_c20["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_c20["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_c20["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["denison_2018"]]
+
+fit_uvsdt_d18 <- fit.mptinr(
+  df_list[["denison_2018"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_d18 <- fit.mptinr(
+  df_list[["denison_2018"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_d18 <- select.mpt(list(fit_uvsdt_d18, fit_evsdt_d18), 
+           output = "full")
+
+individual_sd_d18<- fit_uvsdt_d18$parameters$individual
+
+denison_2018_mod<- data.frame(
+  dataset = "Denison 2018",
+  N = length(unique(df_list[["denison_2018"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_d18$delta.AIC.sum[out_d18$model == "fit_uvsdt_d18"],
+  AIC.EVSD.indiv = out_d18$delta.AIC.sum[out_d18$model == "fit_evsdt_d18"],
+  AIC.UVSD.agg = out_d18$delta.AIC.aggregated[out_d18$model == "fit_uvsdt_d18"],
+  AIC.EVSD.agg = out_d18$delta.AIC.aggregated[out_d18$model == "fit_evsdt_d18"],
+  SD.UVSD.agg = fit_uvsdt_d18$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_d18["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_d18["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_d18["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["desender_2022_ex1"]]
+
+fit_uvsdt_d22e1 <- fit.mptinr(
+  df_list[["desender_2022_ex1"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_d22e1 <- fit.mptinr(
+  df_list[["desender_2022_ex1"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_d22e1 <- select.mpt(list(fit_uvsdt_d22e1, fit_evsdt_d22e1), 
+           output = "full")
+
+individual_sd_d22e1<- fit_uvsdt_d22e1$parameters$individual
+
+desender_2022_ex1_mod<- data.frame(
+  dataset = "Desender 2022 Ex1",
+  N = length(unique(df_list[["desender_2022_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_d22e1$delta.AIC.sum[out_d22e1$model == "fit_uvsdt_d22e1"],
+  AIC.EVSD.indiv = out_d22e1$delta.AIC.sum[out_d22e1$model == "fit_evsdt_d22e1"],
+  AIC.UVSD.agg = out_d22e1$delta.AIC.aggregated[out_d22e1$model == "fit_uvsdt_d22e1"],
+  AIC.EVSD.agg = out_d22e1$delta.AIC.aggregated[out_d22e1$model == "fit_evsdt_d22e1"],
+  SD.UVSD.agg = fit_uvsdt_d22e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_d22e1["sd", "estimates", ] %>% median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_d22e1["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_d22e1["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["desender_2022_p2B"]]
+
+fit_uvsdt_d22p2b <- fit.mptinr(
+  df_list[["desender_2022_p2B"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_d22p2b <- fit.mptinr(
+  df_list[["desender_2022_p2B"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_d22p2b <- select.mpt(list(fit_uvsdt_d22p2b, fit_evsdt_d22p2b),  output = "full")
+
+individual_sd_d22p2b<- fit_uvsdt_d22p2b$parameters$individual
+
+desender_2022_p2B_mod<- data.frame(
+  dataset = "Desender 2022 Exp2B",
+  N = length(unique(df_list[["desender_2022_p2B"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_d22p2b$delta.AIC.sum[out_d22p2b$model == "fit_uvsdt_d22p2b"],
+  AIC.EVSD.indiv = out_d22p2b$delta.AIC.sum[out_d22p2b$model == "fit_evsdt_d22p2b"],
+  AIC.UVSD.agg = out_d22p2b$delta.AIC.aggregated[out_d22p2b$model == "fit_uvsdt_d22p2b"],
+  AIC.EVSD.agg = out_d22p2b$delta.AIC.aggregated[out_d22p2b$model == "fit_evsdt_d22p2b"],
+  SD.UVSD.agg = fit_uvsdt_d22p2b$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_d22p2b["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_d22p2b["sd", "estimates", ] %>%  quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_d22p2b["sd", "estimates", ] %>% quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["gajdos_2019"]]
+
+fit_uvsdt_g19 <- fit.mptinr(
+  df_list[["gajdos_2019"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_g19 <- fit.mptinr(
+  df_list[["gajdos_2019"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_g19 <- select.mpt(list(fit_uvsdt_g19, fit_evsdt_g19), 
+           output = "full")
+
+individual_sd_g19<- fit_uvsdt_g19$parameters$individual
+
+gajdos_2019_mod<- data.frame(
+  dataset = "Gajdos 2019",
+  N = length(unique(df_list[["gajdos_2019"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_g19$delta.AIC.sum[out_g19$model == "fit_uvsdt_g19"],
+  AIC.EVSD.indiv = out_g19$delta.AIC.sum[out_g19$model == "fit_evsdt_g19"],
+  AIC.UVSD.agg = out_g19$delta.AIC.aggregated[out_g19$model == "fit_uvsdt_g19"],
+  AIC.EVSD.agg = out_g19$delta.AIC.aggregated[out_g19$model == "fit_evsdt_g19"],
+  SD.UVSD.agg = fit_uvsdt_g19$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_g19["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_g19["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_g19["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["gherman_2018"]]
+
+fit_uvsdt_g18 <- fit.mptinr(
+  df_list[["gherman_2018"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 8:1), paste0("cr", 1:8)),
+  categories.per.type = c(18,18),
+  lower.bound=c(0, -Inf, rep(0, 17)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_g18 <- fit.mptinr(
+  df_list[["gherman_2018"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 8:1), paste0("cr", 1:8)),
+  categories.per.type = c(18,18),
+  lower.bound=c(0, -Inf, rep(0, 16)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_g18 <- select.mpt(list(fit_uvsdt_g18, fit_evsdt_g18), 
+           output = "full")
+
+individual_sd_g18<- fit_uvsdt_g18$parameters$individual
+
+gherman_2018_mod<- data.frame(
+  dataset = "Gherman 2018",
+  N = length(unique(df_list[["gherman_2018"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_g18$delta.AIC.sum[out_g18$model == "fit_uvsdt_g18"],
+  AIC.EVSD.indiv = out_g18$delta.AIC.sum[out_g18$model == "fit_evsdt_g18"],
+  AIC.UVSD.agg = out_g18$delta.AIC.aggregated[out_g18$model == "fit_uvsdt_g18"],
+  AIC.EVSD.agg = out_g18$delta.AIC.aggregated[out_g18$model == "fit_evsdt_g18"],
+  SD.UVSD.agg = fit_uvsdt_g18$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_g18["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_g18["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_g18["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["haddara_2022_ex1"]]
+
+fit_uvsdt_h22e1 <- fit.mptinr(
+  df_list[["haddara_2022_ex1"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_h22e1 <- fit.mptinr(
+  df_list[["haddara_2022_ex1"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_h22e1 <- select.mpt(list(fit_uvsdt_h22e1, fit_evsdt_h22e1), 
+           output = "full")
+
+individual_sd_h22e1<- fit_uvsdt_h22e1$parameters$individual
+
+haddara_2022_ex1_mod<- data.frame(
+  dataset = "Haddara 2022 Ex1",
+  N = length(unique(df_list[["haddara_2022_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_h22e1$delta.AIC.sum[out_h22e1$model == "fit_uvsdt_h22e1"],
+  AIC.EVSD.indiv = out_h22e1$delta.AIC.sum[out_h22e1$model == "fit_evsdt_h22e1"],
+  AIC.UVSD.agg = out_h22e1$delta.AIC.aggregated[out_h22e1$model == "fit_uvsdt_h22e1"],
+  AIC.EVSD.agg = out_h22e1$delta.AIC.aggregated[out_h22e1$model == "fit_evsdt_h22e1"],
+  SD.UVSD.agg = fit_uvsdt_h22e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_h22e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_h22e1["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_h22e1["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["haddara_2022_ex2"]]
+
+fit_uvsdt_h22e2 <- fit.mptinr(
+  df_list[["haddara_2022_ex2"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_h22e2 <- fit.mptinr(
+  df_list[["haddara_2022_ex2"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_h22e2 <- select.mpt(list(fit_uvsdt_h22e2, fit_evsdt_h22e2), 
+           output = "full")
+
+individual_sd_h22e2<- fit_uvsdt_h22e2$parameters$individual
+
+haddara_2022_ex2_mod<- data.frame(
+  dataset = "Haddara 2022 Ex2",
+  N = length(unique(df_list[["haddara_2022_ex2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_h22e2$delta.AIC.sum[out_h22e2$model == "fit_uvsdt_h22e2"],
+  AIC.EVSD.indiv = out_h22e2$delta.AIC.sum[out_h22e2$model == "fit_evsdt_h22e2"],
+  AIC.UVSD.agg = out_h22e2$delta.AIC.aggregated[out_h22e2$model == "fit_uvsdt_h22e2"],
+  AIC.EVSD.agg = out_h22e2$delta.AIC.aggregated[out_h22e2$model == "fit_evsdt_h22e2"],
+  SD.UVSD.agg = fit_uvsdt_h22e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_h22e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_h22e2["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_h22e2["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["hu_2017"]]
+
+fit_uvsdt_h17 <- fit.mptinr(
+  df_list[["hu_2017"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_h17 <- fit.mptinr(
+  df_list[["hu_2017"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_h17 <- select.mpt(list(fit_uvsdt_h17, fit_evsdt_h17), 
+           output = "full")
+
+individual_sd_h17<- fit_uvsdt_h17$parameters$individual
+
+hu_2017_mod<- data.frame(
+  dataset = "Hu 2017",
+  N = length(unique(df_list[["hu_2017"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_h17$delta.AIC.sum[out_h17$model == "fit_uvsdt_h17"],
+  AIC.EVSD.indiv = out_h17$delta.AIC.sum[out_h17$model == "fit_evsdt_h17"],
+  AIC.UVSD.agg = out_h17$delta.AIC.aggregated[out_h17$model == "fit_uvsdt_h17"],
+  AIC.EVSD.agg = out_h17$delta.AIC.aggregated[out_h17$model == "fit_evsdt_h17"],
+  SD.UVSD.agg = fit_uvsdt_h17$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_h17["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_h17["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_h17["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["jachs_2015_ex1"]]
+
+fit_uvsdt_j15e1 <- fit.mptinr(
+  df_list[["jachs_2015_ex1"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_j15e1 <- fit.mptinr(
+  df_list[["jachs_2015_ex1"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_j15e1 <- select.mpt(list(fit_uvsdt_j15e1, fit_evsdt_j15e1), 
+           output = "full")
+
+individual_sd_j15e1<- fit_uvsdt_j15e1$parameters$individual
+
+jachs_2015_ex1_mod<- data.frame(
+  dataset = "Jachs 2015 Ex1",
+  N = length(unique(df_list[["jachs_2015_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_j15e1$delta.AIC.sum[out_j15e1$model == "fit_uvsdt_j15e1"],
+  AIC.EVSD.indiv = out_j15e1$delta.AIC.sum[out_j15e1$model == "fit_evsdt_j15e1"],
+  AIC.UVSD.agg = out_j15e1$delta.AIC.aggregated[out_j15e1$model == "fit_uvsdt_j15e1"],
+  AIC.EVSD.agg = out_j15e1$delta.AIC.aggregated[out_j15e1$model == "fit_evsdt_j15e1"],
+  SD.UVSD.agg = fit_uvsdt_j15e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_j15e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_j15e1["sd", "estimates", ] %>% 
+                    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_j15e1["sd", "estimates", ] %>% 
+                    quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["jachs_2015_ex2"]]
+
+fit_uvsdt_j15e2 <- fit.mptinr(
+  df_list[["jachs_2015_ex2"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_j15e2 <- fit.mptinr(
+  df_list[["jachs_2015_ex2"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_j15e2 <- select.mpt(list(fit_uvsdt_j15e2, fit_evsdt_j15e2), 
+           output = "full")[,columns_mod_selection]
+
+individual_sd_j15e2<- fit_uvsdt_j15e2$parameters$individual
+
+jachs_2015_ex2_mod<- data.frame(
+  dataset = "Jachs 2015 Ex2",
+  N = length(unique(df_list[["jachs_2015_ex2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_j15e2$delta.AIC.sum[out_j15e2$model == "fit_uvsdt_j15e2"],
+  AIC.EVSD.indiv = out_j15e2$delta.AIC.sum[out_j15e2$model == "fit_evsdt_j15e2"],
+  AIC.UVSD.agg = out_j15e2$delta.AIC.aggregated[out_j15e2$model == "fit_uvsdt_j15e2"],
+  AIC.EVSD.agg = out_j15e2$delta.AIC.aggregated[out_j15e2$model == "fit_evsdt_j15e2"],
+  SD.UVSD.agg = fit_uvsdt_j15e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_j15e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_j15e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_j15e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["jachs_2015_ex3"]]
+
+fit_uvsdt_j15e3 <- fit.mptinr(
+  df_list[["jachs_2015_ex3"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 1), paste0("cr", 1)),
+  categories.per.type = c(4,4),
+  lower.bound=c(0, -Inf, rep(0, 3)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_j15e3 <- fit.mptinr(
+  df_list[["jachs_2015_ex3"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 1), paste0("cr", 1)),
+  categories.per.type = c(4,4),
+  lower.bound=c(0, -Inf, rep(0, 2)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_j15e3 <- select.mpt(list(fit_uvsdt_j15e3, fit_evsdt_j15e3), 
+           output = "full")
+
+individual_sd_j15e3<- fit_uvsdt_j15e3$parameters$individual
+
+jachs_2015_ex3_mod<- data.frame(
+  dataset = "Jachs 2015 Ex3",
+  N = length(unique(df_list[["jachs_2015_ex3"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_j15e3$delta.AIC.sum[out_j15e3$model == "fit_uvsdt_j15e3"],
+  AIC.EVSD.indiv = out_j15e3$delta.AIC.sum[out_j15e3$model == "fit_evsdt_j15e3"],
+  AIC.UVSD.agg = out_j15e3$delta.AIC.aggregated[out_j15e3$model == "fit_uvsdt_j15e3"],
+  AIC.EVSD.agg = out_j15e3$delta.AIC.aggregated[out_j15e3$model == "fit_evsdt_j15e3"],
+  SD.UVSD.agg = fit_uvsdt_j15e3$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_j15e3["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_j15e3["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_j15e3["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["kantner_2012_ex1"]]
+
+fit_uvsdt_k12e1 <- fit.mptinr(
+  df_list[["kantner_2012_ex1"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_k12e1 <- fit.mptinr(
+  df_list[["kantner_2012_ex1"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_k12e1 <- select.mpt(list(fit_uvsdt_k12e1, fit_evsdt_k12e1), 
+           output = "full")
+
+individual_sd_k12e1<- fit_uvsdt_k12e1$parameters$individual
+
+kantner_2012_ex1_mod<- data.frame(
+  dataset = "Kantner 2012 Ex1",
+  N = length(unique(df_list[["kantner_2012_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_k12e1$delta.AIC.sum[out_k12e1$model == "fit_uvsdt_k12e1"],
+  AIC.EVSD.indiv = out_k12e1$delta.AIC.sum[out_k12e1$model == "fit_evsdt_k12e1"],
+  AIC.UVSD.agg = out_k12e1$delta.AIC.aggregated[out_k12e1$model == "fit_uvsdt_k12e1"],
+  AIC.EVSD.agg = out_k12e1$delta.AIC.aggregated[out_k12e1$model == "fit_evsdt_k12e1"],
+  SD.UVSD.agg = fit_uvsdt_k12e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_k12e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_k12e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_k12e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75))
+)
+```
+
+```{r}
+df_list[["kantner_2012_ex2"]]
+
+fit_uvsdt_k12e2 <- fit.mptinr(
+  df_list[["kantner_2012_ex2"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_k12e2 <- fit.mptinr(
+  df_list[["kantner_2012_ex2"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_k12e2 <- select.mpt(list(fit_uvsdt_k12e2, fit_evsdt_k12e2), 
+           output = "full")
+
+individual_sd_k12e2<- fit_uvsdt_k12e2$parameters$individual
+
+kantner_2012_ex2_mod<- data.frame(
+  dataset = "Kantner 2012 Ex2",
+  N = length(unique(df_list[["kantner_2012_ex2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_k12e2$delta.AIC.sum[out_k12e2$model == "fit_uvsdt_k12e2"],
+  AIC.EVSD.indiv = out_k12e2$delta.AIC.sum[out_k12e2$model == "fit_evsdt_k12e2"],
+  AIC.UVSD.agg = out_k12e2$delta.AIC.aggregated[out_k12e2$model == "fit_uvsdt_k12e2"],
+  AIC.EVSD.agg = out_k12e2$delta.AIC.aggregated[out_k12e2$model == "fit_evsdt_k12e2"],
+  SD.UVSD.agg = fit_uvsdt_k12e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_k12e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_k12e2["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_k12e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["kantner_2012_ex4"]]
+
+fit_uvsdt_k12e4 <- fit.mptinr(
+  df_list[["kantner_2012_ex4"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_k12e4 <- fit.mptinr(
+  df_list[["kantner_2012_ex4"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_k12e4 <- select.mpt(list(fit_uvsdt_k12e4, fit_evsdt_k12e4), 
+           output = "full")
+
+individual_sd_k12e4<- fit_uvsdt_k12e4$parameters$individual
+
+kantner_2012_ex4_mod<- data.frame(
+  dataset = "Kantner 2012 Ex4",
+  N = length(unique(df_list[["kantner_2012_ex4"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_k12e4$delta.AIC.sum[out_k12e4$model == "fit_uvsdt_k12e4"],
+  AIC.EVSD.indiv = out_k12e4$delta.AIC.sum[out_k12e4$model == "fit_evsdt_k12e4"],
+  AIC.UVSD.agg = out_k12e4$delta.AIC.aggregated[out_k12e4$model == "fit_uvsdt_k12e4"],
+  AIC.EVSD.agg = out_k12e4$delta.AIC.aggregated[out_k12e4$model == "fit_evsdt_k12e4"],
+  SD.UVSD.agg = fit_uvsdt_k12e4$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_k12e4["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_k12e4["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_k12e4["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["kantner_2014_ex1"]]
+
+fit_uvsdt_k14e1 <- fit.mptinr(
+  df_list[["kantner_2014_ex1"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_k14e1 <- fit.mptinr(
+  df_list[["kantner_2014_ex1"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_k14e1 <- select.mpt(list(fit_uvsdt_k14e1, fit_evsdt_k14e1), 
+           output = "full")
+
+individual_sd_k14e1<- fit_uvsdt_k14e1$parameters$individual
+
+kantner_2014_ex1_mod<- data.frame(
+  dataset = "Kantner 2014 Ex1",
+  N = length(unique(df_list[["kantner_2014_ex1"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_k14e1$delta.AIC.sum[out_k14e1$model == "fit_uvsdt_k14e1"],
+  AIC.EVSD.indiv = out_k14e1$delta.AIC.sum[out_k14e1$model == "fit_evsdt_k14e1"],
+  AIC.UVSD.agg = out_k14e1$delta.AIC.aggregated[out_k14e1$model == "fit_uvsdt_k14e1"],
+  AIC.EVSD.agg = out_k14e1$delta.AIC.aggregated[out_k14e1$model == "fit_evsdt_k14e1"],
+  SD.UVSD.agg = fit_uvsdt_k14e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_k14e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_k14e1["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_k14e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["kantner_2014_ex2"]]
+
+fit_uvsdt_k14e2 <- fit.mptinr(
+  df_list[["kantner_2014_ex2"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_k14e2 <- fit.mptinr(
+  df_list[["kantner_2014_ex2"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_k14e2 <- select.mpt(list(fit_uvsdt_k14e2, fit_evsdt_k14e2), 
+           output = "full")
+
+individual_sd_k14e2<- fit_uvsdt_k14e2$parameters$individual
+
+kantner_2014_ex2_mod<- data.frame(
+  dataset = "Kantner 2014 Ex2",
+  N = length(unique(df_list[["kantner_2014_ex2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_k14e2$delta.AIC.sum[out_k14e2$model == "fit_uvsdt_k14e2"],
+  AIC.EVSD.indiv = out_k14e2$delta.AIC.sum[out_k14e2$model == "fit_evsdt_k14e2"],
+  AIC.UVSD.agg = out_k14e2$delta.AIC.aggregated[out_k14e2$model == "fit_uvsdt_k14e2"],
+  AIC.EVSD.agg = out_k14e2$delta.AIC.aggregated[out_k14e2$model == "fit_evsdt_k14e2"],
+  SD.UVSD.agg = fit_uvsdt_k14e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_k14e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_k14e2["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_k14e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["lindsay_2014"]]
+
+fit_uvsdt_l14 <- fit.mptinr(
+  df_list[["lindsay_2014"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 5)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_l14 <- fit.mptinr(
+  df_list[["lindsay_2014"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 2:1), paste0("cr", 1:2)),
+  categories.per.type = c(6,6),
+  lower.bound=c(0, -Inf, rep(0, 4)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_l14 <- select.mpt(list(fit_uvsdt_l14, fit_evsdt_l14), 
+           output = "full")
+
+individual_sd_l14<- fit_uvsdt_l14$parameters$individual
+
+lindsay_2014_mod<- data.frame(
+  dataset = "Lindsay 2014",
+  N = length(unique(df_list[["lindsay_2014"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_l14$delta.AIC.sum[out_l14$model == "fit_uvsdt_l14"],
+  AIC.EVSD.indiv = out_l14$delta.AIC.sum[out_l14$model == "fit_evsdt_l14"],
+  AIC.UVSD.agg = out_l14$delta.AIC.aggregated[out_l14$model == "fit_uvsdt_l14"],
+  AIC.EVSD.agg = out_l14$delta.AIC.aggregated[out_l14$model == "fit_evsdt_l14"],
+  SD.UVSD.agg = fit_uvsdt_l14$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_l14["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_l14["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_l14["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["maniscalco_2017_ex1"]]
+
+fit_uvsdt_m17e1 <- fit.mptinr(
+  df_list[["maniscalco_2017_ex1"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_m17e1 <- fit.mptinr(
+  df_list[["maniscalco_2017_ex1"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_m17e1 <- select.mpt(list(fit_uvsdt_m17e1, fit_evsdt_m17e1), 
+           output = "full")
+
+individual_sd_m17e1<- fit_uvsdt_m17e1$parameters$individual
+
+maniscalco_2017_ex1_mod<- data.frame(
+  dataset = "Maniscalco 2017 Ex1",
+  N = length(unique(df_list[["maniscalco_2017_ex1"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_m17e1$delta.AIC.sum[out_m17e1$model == "fit_uvsdt_m17e1"],
+  AIC.EVSD.indiv = out_m17e1$delta.AIC.sum[out_m17e1$model == "fit_evsdt_m17e1"],
+  AIC.UVSD.agg = out_m17e1$delta.AIC.aggregated[out_m17e1$model == "fit_uvsdt_m17e1"],
+  AIC.EVSD.agg = out_m17e1$delta.AIC.aggregated[out_m17e1$model == "fit_evsdt_m17e1"],
+  SD.UVSD.agg = fit_uvsdt_m17e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_m17e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_m17e1["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_m17e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["maniscalco_2017_ex3"]]
+
+fit_uvsdt_m17e3 <- fit.mptinr(
+  df_list[["maniscalco_2017_ex3"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_m17e3 <- fit.mptinr(
+  df_list[["maniscalco_2017_ex3"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_m17e3 <- select.mpt(list(fit_uvsdt_m17e3, fit_evsdt_m17e3), 
+           output = "full")
+
+individual_sd_m17e3<- fit_uvsdt_m17e3$parameters$individual
+
+maniscalco_2017_ex3_mod<- data.frame(
+  dataset = "Maniscalco 2017 Ex3",
+  N = length(unique(df_list[["maniscalco_2017_ex3"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_m17e3$delta.AIC.sum[out_m17e3$model == "fit_uvsdt_m17e3"],
+  AIC.EVSD.indiv = out_m17e3$delta.AIC.sum[out_m17e3$model == "fit_evsdt_m17e3"],
+  AIC.UVSD.agg = out_m17e3$delta.AIC.aggregated[out_m17e3$model == "fit_uvsdt_m17e3"],
+  AIC.EVSD.agg = out_m17e3$delta.AIC.aggregated[out_m17e3$model == "fit_evsdt_m17e3"],
+  SD.UVSD.agg = fit_uvsdt_m17e3$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_m17e3["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_m17e3["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_m17e3["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["mazor_2020_detect"]]
+
+fit_uvsdt_m20detect <- fit.mptinr(
+  df_list[["mazor_2020_detect"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_m20detect <- fit.mptinr(
+  df_list[["mazor_2020_detect"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_m20detect <- select.mpt(list(fit_uvsdt_m20detect, fit_evsdt_m20detect), 
+           output = "full")
+
+individual_sd_m20detect<- fit_uvsdt_m20detect$parameters$individual
+
+mazor_2020_detect_mod<- data.frame(
+  dataset = "Mazor 2020 Detection",
+  N = length(unique(df_list[["mazor_2020_detect"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_m20detect$delta.AIC.sum[out_m20detect$model == "fit_uvsdt_m20detect"],
+  AIC.EVSD.indiv = out_m20detect$delta.AIC.sum[out_m20detect$model == "fit_evsdt_m20detect"],
+  AIC.UVSD.agg = out_m20detect$delta.AIC.aggregated[out_m20detect$model == "fit_uvsdt_m20detect"],
+  AIC.EVSD.agg = out_m20detect$delta.AIC.aggregated[out_m20detect$model == "fit_evsdt_m20detect"],
+  SD.UVSD.agg = fit_uvsdt_m20detect$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_m20detect["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_m20detect["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_m20detect["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["mazor_2020_disc"]]
+
+fit_uvsdt_m20disc <- fit.mptinr(
+  df_list[["mazor_2020_disc"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_m20disc <- fit.mptinr(
+  df_list[["mazor_2020_disc"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_m20disc <- select.mpt(list(fit_uvsdt_m20disc, fit_evsdt_m20disc), 
+           output = "full")
+
+individual_sd_m20disc<- fit_uvsdt_m20disc$parameters$individual
+
+mazor_2020_disc_mod<- data.frame(
+  dataset = "Mazor 2020 Discrimination",
+  N = length(unique(df_list[["mazor_2020_disc"]]$Subj_idx)),
+   Format = "2AFC",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_m20disc$delta.AIC.sum[out_m20disc$model == "fit_uvsdt_m20disc"],
+  AIC.EVSD.indiv = out_m20disc$delta.AIC.sum[out_m20disc$model == "fit_evsdt_m20disc"],
+  AIC.UVSD.agg = out_m20disc$delta.AIC.aggregated[out_m20disc$model == "fit_uvsdt_m20disc"],
+  AIC.EVSD.agg = out_m20disc$delta.AIC.aggregated[out_m20disc$model == "fit_evsdt_m20disc"],
+  SD.UVSD.agg = fit_uvsdt_m20disc$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_m20disc["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_m20disc["sd", "estimates", ] %>% 
+    quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_m20disc["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+
+```{r}
+df_list[["rausch_2020"]]
+
+fit_uvsdt_r20 <- fit.mptinr(
+  df_list[["rausch_2020"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_r20 <- fit.mptinr(
+  df_list[["rausch_2020"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_r20 <- select.mpt(list(fit_uvsdt_r20, fit_evsdt_r20), 
+                      output = "full")
+
+individual_sd_r20<- fit_uvsdt_r20$parameters$individual
+
+rausch_2020_mod<- data.frame(
+  dataset = "Rausch 2020",
+  N = length(unique(df_list[["rausch_2020"]]$Subj_idx)),
+   Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_r20$delta.AIC.sum[out_r20$model == "fit_uvsdt_r20"],
+  AIC.EVSD.indiv = out_r20$delta.AIC.sum[out_r20$model == "fit_evsdt_r20"],
+  AIC.UVSD.agg = out_r20$delta.AIC.aggregated[out_r20$model == "fit_uvsdt_r20"],
+  AIC.EVSD.agg = out_r20$delta.AIC.aggregated[out_r20$model == "fit_evsdt_r20"],
+  SD.UVSD.agg = fit_uvsdt_r20$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_r20["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_r20["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_r20["sd", "estimates", ] %>%  quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["rouault_2018_ex2"]]
+
+fit_uvsdt_r18e2 <- fit.mptinr(
+  df_list[["rouault_2018_ex2"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_r18e2 <- fit.mptinr(
+  df_list[["rouault_2018_ex2"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_r18e2 <- select.mpt(list(fit_uvsdt_r18e2, fit_evsdt_r18e2), 
+           output = "full")
+
+individual_sd_r18e2<- fit_uvsdt_r18e2$parameters$individual
+
+rouault_2018_ex2_mod<- data.frame(
+  dataset = "Rouault 2018 Ex2",
+  N = length(unique(df_list[["rouault_2018_ex2"]]$Subj_idx)),
+   Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_r18e2$delta.AIC.sum[out_r18e2$model == "fit_uvsdt_r18e2"],
+  AIC.EVSD.indiv = out_r18e2$delta.AIC.sum[out_r18e2$model == "fit_evsdt_r18e2"],
+  AIC.UVSD.agg = out_r18e2$delta.AIC.aggregated[out_r18e2$model == "fit_uvsdt_r18e2"],
+  AIC.EVSD.agg = out_r18e2$delta.AIC.aggregated[out_r18e2$model == "fit_evsdt_r18e2"],
+  SD.UVSD.agg = fit_uvsdt_r18e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_r18e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_r18e2["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_r18e2["sd", "estimates", ] %>% quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["sadeghi_2017_memory"]]
+
+fit_uvsdt_s17m <- fit.mptinr(
+  df_list[["sadeghi_2017_memory"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s17m <- fit.mptinr(
+  df_list[["sadeghi_2017_memory"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s17m <- select.mpt(list(fit_uvsdt_s17m, fit_evsdt_s17m), 
+           output = "full")
+
+individual_sd_s17m<- fit_uvsdt_s17m$parameters$individual
+
+sadeghi_2017_memory_mod<- data.frame(
+  dataset = "Sadeghi 2017 Memory",
+  N = length(unique(df_list[["sadeghi_2017_memory"]]$Subj_idx)),
+   Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s17m$delta.AIC.sum[out_s17m$model == "fit_uvsdt_s17m"],
+  AIC.EVSD.indiv = out_s17m$delta.AIC.sum[out_s17m$model == "fit_evsdt_s17m"],
+  AIC.UVSD.agg = out_s17m$delta.AIC.aggregated[out_s17m$model == "fit_uvsdt_s17m"],
+  AIC.EVSD.agg = out_s17m$delta.AIC.aggregated[out_s17m$model == "fit_evsdt_s17m"],
+  SD.UVSD.agg = fit_uvsdt_s17m$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s17m["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s17m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s17m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["sadeghi_2017_perception"]]
+
+fit_uvsdt_s17p <- fit.mptinr(
+  df_list[["sadeghi_2017_perception"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s17p <- fit.mptinr(
+  df_list[["sadeghi_2017_perception"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s17p <- select.mpt(list(fit_uvsdt_s17p, fit_evsdt_s17p), 
+           output = "full")
+
+individual_sd_s17p<- fit_uvsdt_s17p$parameters$individual
+
+sadeghi_2017_perception_mod<- data.frame(
+  dataset = "Sadeghi 2017 Perception",
+  N = length(unique(df_list[["sadeghi_2017_perception"]]$Subj_idx)),
+   Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s17p$delta.AIC.sum[out_s17p$model == "fit_uvsdt_s17p"],
+  AIC.EVSD.indiv = out_s17p$delta.AIC.sum[out_s17p$model == "fit_evsdt_s17p"],
+  AIC.UVSD.agg = out_s17p$delta.AIC.aggregated[out_s17p$model == "fit_uvsdt_s17p"],
+  AIC.EVSD.agg = out_s17p$delta.AIC.aggregated[out_s17p$model == "fit_evsdt_s17p"],
+  SD.UVSD.agg = fit_uvsdt_s17p$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s17p["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s17p["sd", "estimates", ] %>% quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s17p["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["shekhar_2018"]]
+
+fit_uvsdt_s18 <- fit.mptinr(
+  df_list[["shekhar_2018"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s18 <- fit.mptinr(
+  df_list[["shekhar_2018"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s18 <- select.mpt(list(fit_uvsdt_s18, fit_evsdt_s18), 
+           output = "full")
+
+individual_sd_s18<- fit_uvsdt_s18$parameters$individual
+
+shekhar_2018_mod<- data.frame(
+  dataset = "Shekhar 2018",
+  N = length(unique(df_list[["shekhar_2018"]]$Subj_idx)),
+   Format = "Y/N",
+  Task = "Classification",
+  AIC.UVSD.indiv = out_s18$delta.AIC.sum[out_s18$model == "fit_uvsdt_s18"],
+  AIC.EVSD.indiv = out_s18$delta.AIC.sum[out_s18$model == "fit_evsdt_s18"],
+  AIC.UVSD.agg = out_s18$delta.AIC.aggregated[out_s18$model == "fit_uvsdt_s18"],
+  AIC.EVSD.agg = out_s18$delta.AIC.aggregated[out_s18$model == "fit_evsdt_s18"],
+  SD.UVSD.agg = fit_uvsdt_s18$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s18["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s18["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s18["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["sherman_2016_jocn"]]
+
+fit_uvsdt_s16j <- fit.mptinr(
+  df_list[["sherman_2016_jocn"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s16j <- fit.mptinr(
+  df_list[["sherman_2016_jocn"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s16j <- select.mpt(list(fit_uvsdt_s16j, fit_evsdt_s16j), 
+           output = "full")
+
+individual_sd_s16j<- fit_uvsdt_s16j$parameters$individual
+
+sherman_2016_jocn_mod<- data.frame(
+  dataset = "Sherman 2016 JOCN",
+  N = length(unique(df_list[["sherman_2016_jocn"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s16j$delta.AIC.sum[out_s16j$model == "fit_uvsdt_s16j"],
+  AIC.EVSD.indiv = out_s16j$delta.AIC.sum[out_s16j$model == "fit_evsdt_s16j"],
+  AIC.UVSD.agg = out_s16j$delta.AIC.aggregated[out_s16j$model == "fit_uvsdt_s16j"],
+  AIC.EVSD.agg = out_s16j$delta.AIC.aggregated[out_s16j$model == "fit_evsdt_s16j"],
+  SD.UVSD.agg = fit_uvsdt_s16j$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s16j["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s16j["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s16j["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["siedlecka_2016"]]
+
+fit_uvsdt_s16 <- fit.mptinr(
+  df_list[["siedlecka_2016"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s16 <- fit.mptinr(
+  df_list[["siedlecka_2016"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s16 <- select.mpt(list(fit_uvsdt_s16, fit_evsdt_s16), 
+           output = "full")
+
+individual_sd_s16<- fit_uvsdt_s16$parameters$individual
+
+siedlecka_2016_mod<- data.frame(
+  dataset = "Siedlecka 2016",
+  N = length(unique(df_list[["siedlecka_2016"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s16$delta.AIC.sum[out_s16$model == "fit_uvsdt_s16"],
+  AIC.EVSD.indiv = out_s16$delta.AIC.sum[out_s16$model == "fit_evsdt_s16"],
+  AIC.UVSD.agg = out_s16$delta.AIC.aggregated[out_s16$model == "fit_uvsdt_s16"],
+  AIC.EVSD.agg = out_s16$delta.AIC.aggregated[out_s16$model == "fit_evsdt_s16"],
+  SD.UVSD.agg = fit_uvsdt_s16$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s16["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s16["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s16["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["siedlecka_2019_1"]]
+
+fit_uvsdt_s19e1 <- fit.mptinr(
+  df_list[["siedlecka_2019_1"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s19e1 <- fit.mptinr(
+  df_list[["siedlecka_2019_1"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s19e1 <- select.mpt(list(fit_uvsdt_s19e1, fit_evsdt_s19e1), 
+           output = "full")
+
+individual_sd_s19e1<- fit_uvsdt_s19e1$parameters$individual
+
+siedlecka_2019_1_mod<- data.frame(
+  dataset = "Siedlecka 2019 Ex1",
+  N = length(unique(df_list[["siedlecka_2019_1"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s19e1$delta.AIC.sum[out_s19e1$model == "fit_uvsdt_s19e1"],
+  AIC.EVSD.indiv = out_s19e1$delta.AIC.sum[out_s19e1$model == "fit_evsdt_s19e1"],
+  AIC.UVSD.agg = out_s19e1$delta.AIC.aggregated[out_s19e1$model == "fit_uvsdt_s19e1"],
+  AIC.EVSD.agg = out_s19e1$delta.AIC.aggregated[out_s19e1$model == "fit_evsdt_s19e1"],
+  SD.UVSD.agg = fit_uvsdt_s19e1$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s19e1["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s19e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s19e1["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["siedlecka_2019_2"]]
+
+fit_uvsdt_s19e2 <- fit.mptinr(
+  df_list[["siedlecka_2019_2"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s19e2 <- fit.mptinr(
+  df_list[["siedlecka_2019_2"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s19e2 <- select.mpt(list(fit_uvsdt_s19e2, fit_evsdt_s19e2), 
+           output = "full")
+
+individual_sd_s19e2<- fit_uvsdt_s19e2$parameters$individual
+
+siedlecka_2019_2_mod<- data.frame(
+  dataset = "Siedlecka 2019 Ex2",
+  N = length(unique(df_list[["siedlecka_2019_2"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s19e2$delta.AIC.sum[out_s19e2$model == "fit_uvsdt_s19e2"],
+  AIC.EVSD.indiv = out_s19e2$delta.AIC.sum[out_s19e2$model == "fit_evsdt_s19e2"],
+  AIC.UVSD.agg = out_s19e2$delta.AIC.aggregated[out_s19e2$model == "fit_uvsdt_s19e2"],
+  AIC.EVSD.agg = out_s19e2$delta.AIC.aggregated[out_s19e2$model == "fit_evsdt_s19e2"],
+  SD.UVSD.agg = fit_uvsdt_s19e2$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s19e2["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s19e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s19e2["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["skora_2016"]]
+
+fit_uvsdt_sk16 <- fit.mptinr(
+  df_list[["skora_2016"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_sk16 <- fit.mptinr(
+  df_list[["skora_2016"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_sk16 <- select.mpt(list(fit_uvsdt_sk16, fit_evsdt_sk16), 
+           output = "full")
+
+individual_sd_sk16<- fit_uvsdt_sk16$parameters$individual
+
+skora_2016_mod<- data.frame(
+  dataset = "Skora 2016",
+  N = length(unique(df_list[["skora_2016"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_sk16$delta.AIC.sum[out_sk16$model == "fit_uvsdt_sk16"],
+  AIC.EVSD.indiv = out_sk16$delta.AIC.sum[out_sk16$model == "fit_evsdt_sk16"],
+  AIC.UVSD.agg = out_sk16$delta.AIC.aggregated[out_sk16$model == "fit_uvsdt_sk16"],
+  AIC.EVSD.agg = out_sk16$delta.AIC.aggregated[out_sk16$model == "fit_evsdt_sk16"],
+  SD.UVSD.agg = fit_uvsdt_sk16$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_sk16["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_sk16["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_sk16["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["sinanaj_2015"]]
+
+fit_uvsdt_s15 <- fit.mptinr(
+  df_list[["sinanaj_2015"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 4:1), paste0("cr", 1:4)),
+  categories.per.type = c(10,10),
+  lower.bound=c(0, -Inf, rep(0, 9)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s15 <- fit.mptinr(
+  df_list[["sinanaj_2015"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 4:1), paste0("cr", 1:4)),
+  categories.per.type = c(10,10),
+  lower.bound=c(0, -Inf, rep(0, 8)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s15 <- select.mpt(list(fit_uvsdt_s15, fit_evsdt_s15), 
+           output = "full")
+
+individual_sd_s15<- fit_uvsdt_s15$parameters$individual
+
+sinanaj_2015_mod<- data.frame(
+  dataset = "Sinanaj 2015",
+  N = length(unique(df_list[["sinanaj_2015"]]$Subj_idx)),
+  Format = "Y/N",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s15$delta.AIC.sum[out_s15$model == "fit_uvsdt_s15"],
+  AIC.EVSD.indiv = out_s15$delta.AIC.sum[out_s15$model == "fit_evsdt_s15"],
+  AIC.UVSD.agg = out_s15$delta.AIC.aggregated[out_s15$model == "fit_uvsdt_s15"],
+  AIC.EVSD.agg = out_s15$delta.AIC.aggregated[out_s15$model == "fit_evsdt_s15"],
+  SD.UVSD.agg = fit_uvsdt_s15$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s15["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s15["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s15["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["song_2011"]]
+
+fit_uvsdt_s11 <- fit.mptinr(
+  df_list[["song_2011"]][,-c(1)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 11)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_s11 <- fit.mptinr(
+  df_list[["song_2011"]][,-c(1)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 5:1), paste0("cr", 1:5)),
+  categories.per.type = c(12,12),
+  lower.bound=c(0, -Inf, rep(0, 10)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_s11 <- select.mpt(list(fit_uvsdt_s11, fit_evsdt_s11), 
+           output = "full")[,columns_mod_selection]
+
+individual_sd_s11<- fit_uvsdt_s11$parameters$individual
+
+song_2011_mod<- data.frame(
+  dataset = "Song 2011",
+  N = length(unique(df_list[["song_2011"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_s11$delta.AIC.sum[out_s11$model == "fit_uvsdt_s11"],
+  AIC.EVSD.indiv = out_s11$delta.AIC.sum[out_s11$model == "fit_evsdt_s11"],
+  AIC.UVSD.agg = out_s11$delta.AIC.aggregated[out_s11$model == "fit_uvsdt_s11"],
+  AIC.EVSD.agg = out_s11$delta.AIC.aggregated[out_s11$model == "fit_evsdt_s11"],
+  SD.UVSD.agg = fit_uvsdt_s11$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_s11["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_s11["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_s11["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["xu_2019_ex1_c"]]
+
+fit_uvsdt_x19e1c <- fit.mptinr(
+  df_list[["xu_2019_ex1_c"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_x19e1c <- fit.mptinr(
+  df_list[["xu_2019_ex1_c"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_x19e1c <- select.mpt(list(fit_uvsdt_x19e1c, fit_evsdt_x19e1c),                output = "full")
+
+individual_sd_x19e1c<- fit_uvsdt_x19e1c$parameters$individual
+
+xu_2019_ex1_c_mod<- data.frame(
+  dataset = "Xu 2019 Ex1 Cognitive",
+  N = length(unique(df_list[["xu_2019_ex1_c"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_x19e1c$delta.AIC.sum[out_x19e1c$model == "fit_uvsdt_x19e1c"],
+  AIC.EVSD.indiv = out_x19e1c$delta.AIC.sum[out_x19e1c$model == "fit_evsdt_x19e1c"],
+  AIC.UVSD.agg = out_x19e1c$delta.AIC.aggregated[out_x19e1c$model == "fit_uvsdt_x19e1c"],
+  AIC.EVSD.agg = out_x19e1c$delta.AIC.aggregated[out_x19e1c$model == "fit_evsdt_x19e1c"],
+  SD.UVSD.agg = (1/fit_uvsdt_x19e1c$parameters$aggregated["sd", "estimates"]),
+  SD.UVSD.median = (1/individual_sd_x19e1c["sd", "estimates", ]) %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric((1/individual_sd_x19e1c["sd", "estimates", ]) %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric((1/individual_sd_x19e1c["sd", "estimates", ]) %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["xu_2019_ex1_m"]]
+
+fit_uvsdt_x19e1m <- fit.mptinr(
+  df_list[["xu_2019_ex1_m"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_x19e1m <- fit.mptinr(
+  df_list[["xu_2019_ex1_m"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_x19e1m <- select.mpt(list(fit_uvsdt_x19e1m, fit_evsdt_x19e1m), output = "full")
+
+individual_sd_x19e1m<- fit_uvsdt_x19e1m$parameters$individual
+
+xu_2019_ex1_m_mod<- data.frame(
+  dataset = "Xu 2019 Ex1 Memory",
+  N = length(unique(df_list[["xu_2019_ex1_m"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_x19e1m$delta.AIC.sum[out_x19e1m$model == "fit_uvsdt_x19e1m"],
+  AIC.EVSD.indiv = out_x19e1m$delta.AIC.sum[out_x19e1m$model == "fit_evsdt_x19e1m"],
+  AIC.UVSD.agg = out_x19e1m$delta.AIC.aggregated[out_x19e1m$model == "fit_uvsdt_x19e1m"],
+  AIC.EVSD.agg = out_x19e1m$delta.AIC.aggregated[out_x19e1m$model == "fit_evsdt_x19e1m"],
+  SD.UVSD.agg = fit_uvsdt_x19e1m$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_x19e1m["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_x19e1m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_x19e1m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+
+```
+
+```{r}
+df_list[["xu_2019_ex2_c"]]
+
+fit_uvsdt_x19e2c <- fit.mptinr(
+  df_list[["xu_2019_ex2_c"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_x19e2c <- fit.mptinr(
+  df_list[["xu_2019_ex2_c"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_x19e2c <- select.mpt(list(fit_uvsdt_x19e2c, fit_evsdt_x19e2c),  output = "full")
+
+individual_sd_x19e2c<- fit_uvsdt_x19e2c$parameters$individual
+
+xu_2019_ex2_c_mod<- data.frame(
+  dataset = "Xu 2019 Ex2 Cognitive",
+  N = length(unique(df_list[["xu_2019_ex2_c"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_x19e2c$delta.AIC.sum[out_x19e2c$model == "fit_uvsdt_x19e2c"],
+  AIC.EVSD.indiv = out_x19e2c$delta.AIC.sum[out_x19e2c$model == "fit_evsdt_x19e2c"],
+  AIC.UVSD.agg = out_x19e2c$delta.AIC.aggregated[out_x19e2c$model == "fit_uvsdt_x19e2c"],
+  AIC.EVSD.agg = out_x19e2c$delta.AIC.aggregated[out_x19e2c$model == "fit_evsdt_x19e2c"],
+  SD.UVSD.agg = (1/fit_uvsdt_x19e2c$parameters$aggregated["sd", "estimates"]),
+  SD.UVSD.median = (1/individual_sd_x19e2c["sd", "estimates", ]) %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric((1/individual_sd_x19e2c["sd", "estimates", ]) %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric((1/individual_sd_x19e2c["sd", "estimates", ]) %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["xu_2019_ex2_m"]]
+
+fit_uvsdt_x19e2m <- fit.mptinr(
+  df_list[["xu_2019_ex2_m"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_x19e2m <- fit.mptinr(
+  df_list[["xu_2019_ex2_m"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_x19e2m <- select.mpt(list(fit_uvsdt_x19e2m, fit_evsdt_x19e2m), output = "full")
+
+individual_sd_x19e2m<- fit_uvsdt_x19e2m$parameters$individual
+
+xu_2019_ex2_m_mod<- data.frame(
+  dataset = "Xu 2019 Ex2 Memory",
+  N = length(unique(df_list[["xu_2019_ex2_m"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_x19e2m$delta.AIC.sum[out_x19e2m$model == "fit_uvsdt_x19e2m"],
+  AIC.EVSD.indiv = out_x19e2m$delta.AIC.sum[out_x19e2m$model == "fit_evsdt_x19e2m"],
+  AIC.UVSD.agg = out_x19e2m$delta.AIC.aggregated[out_x19e2m$model == "fit_uvsdt_x19e2m"],
+  AIC.EVSD.agg = out_x19e2m$delta.AIC.aggregated[out_x19e2m$model == "fit_evsdt_x19e2m"],
+  SD.UVSD.agg = fit_uvsdt_x19e2m$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_x19e2m["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_x19e2m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_x19e2m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["ye_2018_m"]]
+
+fit_uvsdt_y18m <- fit.mptinr(
+  df_list[["ye_2018_m"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_y18m <- fit.mptinr(
+  df_list[["ye_2018_m"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_y18m <- select.mpt(list(fit_uvsdt_y18m, fit_evsdt_y18m), 
+           output = "full")
+
+individual_sd_y18m<- fit_uvsdt_y18m$parameters$individual
+
+ye_2018_m_mod<- data.frame(
+  dataset = "Ye 2018 Memory",
+  N = length(unique(df_list[["ye_2018_m"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_y18m$delta.AIC.sum[out_y18m$model == "fit_uvsdt_y18m"],
+  AIC.EVSD.indiv = out_y18m$delta.AIC.sum[out_y18m$model == "fit_evsdt_y18m"],
+  AIC.UVSD.agg = out_y18m$delta.AIC.aggregated[out_y18m$model == "fit_uvsdt_y18m"],
+  AIC.EVSD.agg = out_y18m$delta.AIC.aggregated[out_y18m$model == "fit_evsdt_y18m"],
+  SD.UVSD.agg = fit_uvsdt_y18m$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_y18m["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_y18m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_y18m["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+df_list[["ye_2018_p"]]
+
+fit_uvsdt_y18p <- fit.mptinr(
+  df_list[["ye_2018_p"]][,-c(1,2)], uvsdt_llfun,
+  c("dp", "c", "sd", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 7)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+fit_evsdt_y18p <- fit.mptinr(
+  df_list[["ye_2018_p"]][,-c(1,2)], evsdt_llfun, 
+  c("dp", "c", paste0("cl", 3:1), paste0("cr", 1:3)),
+  categories.per.type = c(8,8),
+  lower.bound=c(0, -Inf, rep(0, 6)), upper.bound=Inf,
+  n.optim = NOPTIM,
+  show.messages = FALSE)
+
+out_y18p <- select.mpt(list(fit_uvsdt_y18p, fit_evsdt_y18p), 
+           output = "full")
+#evidence FOR EVSD
+
+fit_uvsdt_y18p$parameters$aggregated["sd", "estimates"] %>% round(3)
+#1.022
+
+individual_sd_y18p<- fit_uvsdt_y18p$parameters$individual
+
+ye_2018_p_mod<- data.frame(
+  dataset = "Ye 2018 Perception",
+  N = length(unique(df_list[["ye_2018_p"]]$Subj_idx)),
+  Format = "2AFC",
+  Task = "SDT",
+  AIC.UVSD.indiv = out_y18p$delta.AIC.sum[out_y18p$model == "fit_uvsdt_y18p"],
+  AIC.EVSD.indiv = out_y18p$delta.AIC.sum[out_y18p$model == "fit_evsdt_y18p"],
+  AIC.UVSD.agg = out_y18p$delta.AIC.aggregated[out_y18p$model == "fit_uvsdt_y18p"],
+  AIC.EVSD.agg = out_y18p$delta.AIC.aggregated[out_y18p$model == "fit_evsdt_y18p"],
+  SD.UVSD.agg = fit_uvsdt_y18p$parameters$aggregated["sd", "estimates"],
+  SD.UVSD.median = individual_sd_y18p["sd", "estimates", ] %>% 
+    median(),
+  SD.UVSD.Q1 = as.numeric(individual_sd_y18p["sd", "estimates", ] %>% 
+                            quantile(probs = 0.25)),
+  SD.UVSD.Q3 = as.numeric(individual_sd_y18p["sd", "estimates", ] %>% 
+                            quantile(probs = 0.75)))
+```
+
+```{r}
+cognitive_mod<-bind_rows(adler_2018_ex1_mod, adler_2018_ex2_mod,
+                         adler_2018_ex3_mod, denison_2018_mod,
+                         siedlecka_2016_mod, sinanaj_2015_mod, 
+                         xu_2019_ex1_c_mod, xu_2019_ex2_c_mod)
+```
+
+```{r}
+perception_mod<-bind_rows(bang_2019_ex1_mod, bang_2019_ex2_mod, clark_2018_mod, desender_2022_ex1_mod, desender_2022_p2B_mod, gajdos_2019_mod, gherman_2018_mod, haddara_2022_ex1_mod, haddara_2022_ex2_mod,jachs_2015_ex1_mod, jachs_2015_ex2_mod, jachs_2015_ex3_mod, maniscalco_2017_ex1_mod, maniscalco_2017_ex3_mod, mazor_2020_detect_mod, mazor_2020_disc_mod, rausch_2020_mod, rouault_2018_ex2_mod, sadeghi_2017_perception_mod, shekhar_2018_mod, sherman_2016_jocn_mod, song_2011_mod, ye_2018_p_mod)
+```
+
+```{r}
+memory_mod<-bind_rows(chandravadia_2020_mod, hu_2017_mod, kantner_2012_ex1_mod, kantner_2012_ex2_mod, kantner_2012_ex4_mod, kantner_2014_ex1_mod, kantner_2014_ex2_mod, lindsay_2014_mod, sadeghi_2017_memory_mod, siedlecka_2019_1_mod, siedlecka_2019_2_mod, skora_2016_mod, xu_2019_ex1_m_mod, xu_2019_ex2_m_mod, ye_2018_m_mod)
+```
+
+```{r}
+library(kableExtra)
+
+cognitive_table <- cognitive_mod %>% kbl() %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
