@@ -23,6 +23,8 @@ all_dat <- list.files(data_path, full.names = TRUE, pattern = "^data")
 all_names <- list.files(data_path, full.names = FALSE, pattern = "^data") |>
   str_remove("^data_") |>
   str_remove(".csv$")
+
+load("mod_data.RData")
 ```
 
 ```{r}
@@ -2548,6 +2550,10 @@ plot_data_flagged %>% filter(category=="Cognitive") %>%
   facet_wrap(vars(dataset))
 ```
 
+```{r, include=TRUE}
+cognitive_mod %>% kbl() %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
 ## Perception
 ```{r, include=TRUE, out.width='120%', fig.width=15, fig.height=15}
 #perception experiments
@@ -2567,6 +2573,10 @@ plot_data_flagged %>% filter(category=="Perception") %>%
   facet_wrap(vars(dataset))
 ```
 
+```{r, include=TRUE}
+perception_mod %>% kbl() %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
 ## Memory
 ```{r, include=TRUE, out.width='80%', fig.width=10, fig.height=10}
 #memory experiment graphs
@@ -2584,5 +2594,8 @@ plot_data_flagged %>% filter(category=="Memory") %>%
   scale_x_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1")) +
   scale_y_continuous(breaks = c(0, 0.5, 1), labels = c("0", ".5", "1"))+
   facet_wrap(vars(dataset))
+```
 
+```{r, include=TRUE}
+memory_mod %>% kbl() %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
