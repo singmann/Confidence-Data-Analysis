@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Confidence Rating ROCs and SDT Model Fits"
 output: html_document
 date: "2025-08-23"
 ---
