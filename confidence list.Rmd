@@ -1,0 +1,67 @@
+---
+title: "confidence study"
+output: html_document
+date: "2025-06-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+df_list<-list(
+  adler_2018_ex3 = adler_2018_ex3_wide,
+  chandravadia_2020 = chandravadia_2020_wide,
+  desender_2022_p2B = desender_2022_p2B_wide,
+  gajdos_2019 = gajdos_2019_wide,
+  gherman_2018 = gherman_2018_wide,
+  hu_2017 = hu_2017_wide,
+  jachs_2015_ex1 = jachs_2015_ex1_wide,
+  jachs_2015_ex2 = jachs_2015_ex2_wide,
+  jachs_2015_ex3 = jachs_2015_ex3_wide,
+  kantner_2012_ex1 = kantner_2012_ex1_wide,
+  kantner_2012_ex2 = kantner_2012_ex2_wide,
+  kantner_2012_ex4 = kantner_2012_ex4_wide,
+  kantner_2014_ex1 = kantner_2014_ex1_wide,
+  kantner_2014_ex2 = kantner_2014_ex2_wide,
+  lindsay_2014 = lindsay_2014_wide,
+  maniscalco_2017_ex1 = maniscalco_2017_ex1_wide,
+  maniscalco_2017_ex3 = maniscalco_2017_ex3_wide,
+  rouault_2018_ex2 = rouault_2018_ex2_wide,
+  sinanaj_2015 = sinanaj_2015_wide,
+  song_2011 = song_2011_wide,
+  adler_2018_ex1 = adler_2018_ex1_wide,
+  adler_2018_ex2 = adler_2018_ex2_wide,
+  bang_2019_exp1 = bang_2019_exp1_wide,
+  bang_2019_exp2 = bang_2019_exp2_wide,
+  clark_2018 = clark_2018_wide,
+  denison_2018 = denison_2018_wide,
+  desender_2022_ex1 = desender_2022_ex1_wide,
+  haddara_2022_ex1 = haddara_2022_ex1_wide,
+  haddara_2022_ex2 = haddara_2022_ex2_wide,
+  mazor_2020_detect = mazor_2020_detect_wide,
+  mazor_2020_disc = mazor_2020_disc_wide,
+  rausch_2020 = rausch_2020_wide,
+  sadeghi_2017_memory = sadeghi_2017_memory_wide,
+  sadeghi_2017_perception = sadeghi_2017_perception_wide,
+  shekhar_2018 = shekhar_2018_wide,
+  sherman_2016_jocn = sherman_2016_jocn_wide,
+  siedlecka_2016 = siedlecka_2016_wide,
+  siedlecka_2019_1 = siedlecka_2019_1_wide,
+  siedlecka_2019_2 = siedlecka_2019_2_wide,
+  skora_2016 = skora_2016_wide,
+  xu_2019_ex1_c = xu_2019_ex1_c_wide,
+  xu_2019_ex1_m = xu_2019_ex1_m_wide,
+  xu_2019_ex2_c = xu_2019_ex2_c_wide,
+  xu_2019_ex2_m = xu_2019_ex2_m_wide,
+  ye_2018_m = ye_2018_m_wide,
+  ye_2018_p = ye_2018_p_wide
+)
+
+save(df_list, file = "confidence_data_wide.RData")
+
+load("confidence_data_wide.RData")
+
+```
+
