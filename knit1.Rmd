@@ -16,7 +16,7 @@ library(kableExtra)
 theme_set(theme_bw(base_size = 15) + 
             theme(legend.position="bottom"))
 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 data_path <- "confidence data"
 
 all_dat <- list.files(data_path, full.names = TRUE, pattern = "^data")
